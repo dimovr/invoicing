@@ -1,66 +1,66 @@
 <div class="card-body">
     <form id="companyForm" hx-post="/company" hx-target="this" hx-swap="outerHTML">
-        {{if .company.ID}}
-            <input type="hidden" name="ID" value="{{.company.ID}}">
-        {{end}}
-
-        <!-- Group 1: Name and Address -->
         <div class="mb-4">
-            <h5 class="mb-3">Company Information</h5>
-            <div class="row mb-2">
-                <label for="Name" class="col-3 col-form-label">Name</label>
-                <div class="col-9">
-                    <input type="text" name="Name" id="Name" class="form-control" placeholder="Company Name" value="{{.company.Name}}" required>
+            <!-- <h5 class="mb-3">Company Information</h5> -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="Name" class="form-label me-2" style="min-width: 100px;">Name</label>
+                        <input type="text" name="Name" id="Name" class="form-control" placeholder="Company Name" value="{{.company.Name}}" required>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label for="Address" class="col-3 col-form-label">Address</label>
-                <div class="col-9">
-                    <input type="text" name="Address" id="Address" class="form-control" placeholder="Address" value="{{.company.Address}}">
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="Address" class="form-label me-2" style="min-width: 100px;">Address</label>
+                        <input type="text" name="Address" id="Address" class="form-control" placeholder="Address" value="{{.company.Address}}">
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Group 2: Owner and User -->
         <div class="mb-4">
-            <h5 class="mb-3">Contact Information</h5>
-            <div class="row mb-2">
-                <label for="Owner" class="col-3 col-form-label">Owner</label>
-                <div class="col-9">
-                    <input type="text" name="Owner" id="Owner" class="form-control" placeholder="Owner" value="{{.company.Owner}}">
+            <!-- <h5 class="mb-3">Contact Information</h5> -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="Owner" class="form-label me-2" style="min-width: 100px;">Owner</label>
+                        <input type="text" name="Owner" id="Owner" class="form-control" placeholder="Owner" value="{{.company.Owner}}">
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label for="User" class="col-3 col-form-label">User</label>
-                <div class="col-9">
-                    <input type="text" name="User" id="User" class="form-control" placeholder="User" value="{{.company.User}}">
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="User" class="form-label me-2" style="min-width: 100px;">User</label>
+                        <input type="text" name="User" id="User" class="form-control" placeholder="User" value="{{.company.User}}">
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Group 3: Code, Sector Code, and Sector -->
         <div class="mb-4">
-            <h5 class="mb-3">Sector Information</h5>
-            <div class="row mb-2">
-                <label for="Code" class="col-3 col-form-label">Code</label>
-                <div class="col-9">
-                    <input type="text" name="Code" id="Code" class="form-control" placeholder="Company Code" value="{{.company.Code}}" required>
+            <!-- <h5 class="mb-3">Sector Information</h5> -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="Code" class="form-label me-2" style="min-width: 100px;">Code</label>
+                        <input type="text" name="Code" id="Code" class="form-control" placeholder="Company Code" value="{{.company.Code}}" required>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label for="SectorCode" class="col-3 col-form-label">Sector Code</label>
-                <div class="col-9">
-                    <input type="text" name="SectorCode" id="SectorCode" class="form-control" placeholder="Sector Code" value="{{.company.SectorCode}}" required>
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="SectorCode" class="form-label me-2" style="min-width: 100px;">Sector Code</label>
+                        <input type="text" name="SectorCode" id="SectorCode" class="form-control" placeholder="Sector Code" value="{{.company.SectorCode}}" required>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label for="Sector" class="col-3 col-form-label">Sector</label>
-                <div class="col-9">
-                    <input type="text" name="Sector" id="Sector" class="form-control" placeholder="Sector" value="{{.company.Sector}}" required>
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="Sector" class="form-label me-2" style="min-width: 100px;">Sector</label>
+                        <input type="text" name="Sector" id="Sector" class="form-control" placeholder="Sector" value="{{.company.Sector}}" required>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-check"></i>
         </button>
