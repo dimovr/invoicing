@@ -51,55 +51,8 @@
                 </thead>
                 <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>
             </table>
-        {{else if eq .active "invoices"}}
-        <div class="container">
-                <div class="row mb-4">
-                    <div class="col">
-                        <h2>Invoices</h2>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Invoices List</h5>
-                            </div>
-                            <div class="card-body">
-                                <table id="invoicesTable" class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Supplier</th>
-                                            <th>Address</th>
-                                            <th>Subtotal</th>
-                                            <th>Tax Amount</th>
-                                            <th>Total</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {{range .invoices}}
-                                            {{template "invoice.html" .}}
-                                        {{end}}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Create New Invoice</h5>
-                            </div>
-                            <div id="invoiceForm" class="card mb-3" hx-get="/invoices/form" hx-trigger="load"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {{else if eq .active "invoices"}}    
+            {{template "invoices.html" .}}
         {{end}}
     </div>
 </body>

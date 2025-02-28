@@ -10,12 +10,11 @@
     </div>
 
     <div class="mb-3">
-        <h6>Add Items</h6>
         <div class="input-group">
             <select id="itemId" name="ItemID" class="form-select">
                 <option value="">Select an item</option>
                 {{range .items}}
-                    <option value="{{.ID}}">{{.Name}} - ${{.Price}} per {{.Unit}} ({{.TaxRate}}% tax)</option>
+                    <option value="{{.ID}}">{{.Name}} - {{.Price}} per {{.Unit}} ({{.TaxRate}}% tax)</option>
                 {{end}}
             </select>
             <input type="number" id="itemCount" name="Count" class="form-control" placeholder="Count" min="1" value="1">
@@ -24,12 +23,12 @@
                     hx-include="#itemId,#itemCount"
                     hx-target="#lineItemsTable tbody"
                     hx-swap="beforeend">
-                Add Item
+                    <i class="bi bi-plus"></i>
             </button>
         </div>
     </div>
 
-    <div class="mb-3">
+    <!-- <div class="mb-3">
         <table id="lineItemsTable" class="table">
             <thead>
                 <tr>
@@ -47,7 +46,7 @@
             <tbody hx-swap-oob="true">
             </tbody>
         </table>
-    </div>
+    </div> -->
 
     <div id="invoiceSummary" class="mb-3">
         <input type="hidden" name="Subtotal" id="hiddenSubtotal" value="0">
