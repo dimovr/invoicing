@@ -1,6 +1,7 @@
 package main
 
 import (
+	"text/template"
 	"todo-item-app/handlers"
 	"todo-item-app/models"
 
@@ -17,9 +18,17 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Item{}, &models.Supplier{})
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Invoice{}, &models.InvoiceLineItem{}, &models.Supplier{})
 
 	r := gin.Default()
+	// Define custom template functions
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+	}
+	// Load templates with the custom function map
+	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./static")
 
@@ -44,6 +53,19 @@ func main() {
 	r.GET("/suppliers/:id/edit", supplierHandler.GetSupplierEditForm)
 	r.PUT("/suppliers/:id", supplierHandler.UpdateSupplier)
 	r.DELETE("/suppliers/:id", supplierHandler.DeleteSupplier)
+
+	// Add invoice routes
+	invoiceHandler := handlers.NewInvoiceHandler(db)
+	r.GET("/invoices", invoiceHandler.GetInvoices)
+	r.GET("/invoices/list", invoiceHandler.GetInvoicesPartial)
+	r.GET("/invoices/form", invoiceHandler.GetInvoiceCreateForm)
+	r.POST("/invoices", invoiceHandler.CreateInvoice)
+	r.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)
+
+	// Line item handling for the invoice form
+	r.POST("/invoices/line-items", invoiceHandler.AddLineItem)
+	r.DELETE("/invoices/line-items/:tempId", invoiceHandler.RemoveLineItem)
+	r.GET("/invoices/summary", invoiceHandler.GetInvoiceSummary)
 
 	r.Run(":8080")
 }

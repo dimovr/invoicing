@@ -1,0 +1,10 @@
+<div class="d-flex justify-content-end">
+    <div class="text-end me-3">
+        <input type="hidden" name="Subtotal" id="hiddenSubtotal" value="{{.subtotal}}">
+        <input type="hidden" name="TaxAmount" id="hiddenTaxAmount" value="{{.taxAmount}}">
+        <input type="hidden" name="Total" id="hiddenTotal" value="{{.total}}">
+        <p><strong>Subtotal:</strong> ${{printf "%.2f" .subtotal}}</p>
+        <p><strong>Tax Amount:</strong> ${{printf "%.2f" .taxAmount}}</p>
+        <p><strong>Total:</strong> ${{printf "%.2f" .total}}</p>
+    </div>
+</div>

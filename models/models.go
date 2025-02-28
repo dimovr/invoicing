@@ -37,34 +37,25 @@ type Supplier struct {
 	Address string `json:"address"`
 }
 
-// // Invoice represents a bill from a supplier
-// type Invoice struct {
-// 	gorm.Model
-// 	InvoiceNumber string    `gorm:"size:50;not null;uniqueIndex"`
-// 	SupplierID    uint      `gorm:"not null"`
-// 	Supplier      Supplier  `gorm:"foreignKey:SupplierID"`
-// 	IssueDate     time.Time `gorm:"not null"`
-// 	DueDate       time.Time `gorm:"not null"`
-// 	PaidDate      *time.Time
-// 	SubTotal      float64 `gorm:"type:decimal(10,2);not null"`
-// 	TaxAmount     float64 `gorm:"type:decimal(10,2);not null"`
-// 	TotalAmount   float64 `gorm:"type:decimal(10,2);not null"`
-// 	Status        string  `gorm:"size:20;default:'draft'"` // draft, pending, paid, overdue, cancelled
-// 	Notes         string  `gorm:"size:2550"`
-// 	AttachmentURL string  `gorm:"size:255"`
-// 	Items         []InvoiceItem
-// }
+type Invoice struct {
+	gorm.Model
+	ID         uint              `gorm:"primaryKey" json:"id"`
+	SupplierID uint              `gorm:"not null" json:"supplier_id"`
+	Supplier   Supplier          `gorm:"foreignKey:SupplierID" json:"supplier"`
+	LineItems  []InvoiceLineItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
+	Subtotal   float64           `json:"subtotal"`   // Calculated: Sum of item prices * counts
+	TaxAmount  float64           `json:"tax_amount"` // Calculated: Sum of (item price * count * tax_rate)
+	Total      float64           `json:"total"`      // Calculated: Subtotal + TaxAmount
+}
 
-// // InvoiceItem represents a line item in an invoice
-// type InvoiceItem struct {
-// 	gorm.Model
-// 	InvoiceID   uint    `gorm:"not null"`
-// 	ItemID      uint    `gorm:"not null"`
-// 	Item        Item    `gorm:"foreignKey:ItemID"`
-// 	Description string  `gorm:"size:500"`
-// 	Quantity    float64 `gorm:"type:decimal(10,2);not null"`
-// 	UnitPrice   float64 `gorm:"type:decimal(10,2);not null"`
-// 	TaxRate     float64 `gorm:"type:decimal(5,2);default:0"`
-// 	TaxAmount   float64 `gorm:"type:decimal(10,2);not null"`
-// 	TotalAmount float64 `gorm:"type:decimal(10,2);not null"`
-// }
+type InvoiceLineItem struct {
+	gorm.Model
+	// ID      uint    `gorm:"primaryKey" json:"ID"`
+	InvoiceID uint    `gorm:"not null" json:"invoice_id"`
+	ItemID    uint    `gorm:"not null" json:"item_id"`
+	Item      Item    `gorm:"foreignKey:ItemID" json:"item"`
+	Count     int     `gorm:"not null" json:"count"`
+	Subtotal  float64 `json:"subtotal"`   // Calculated: Item.Price * Count
+	TaxAmount float64 `json:"tax_amount"` // Calculated: Item.Price * Count * (Item.TaxRate / 100)
+	Total     float64 `json:"total"`      // Calculated: Subtotal + TaxAmount
+}
