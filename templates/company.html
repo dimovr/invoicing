@@ -1,0 +1,38 @@
+<div class="card-body">
+    <form id="companyForm" hx-post="/company" hx-target="this" hx-swap="outerHTML">
+        {{if .company.ID}}
+            <input type="hidden" name="ID" value="{{.company.ID}}">
+        {{end}}
+        <div class="mb-3">
+            <label for="Code" class="form-label">Code</label>
+            <input type="text" name="Code" id="Code" class="form-control" placeholder="Company Code" value="{{.company.Code}}" required>
+        </div>
+        <div class="mb-3">
+            <label for="SectorCode" class="form-label">Sector Code</label>
+            <input type="text" name="SectorCode" id="SectorCode" class="form-control" placeholder="Sector Code" value="{{.company.SectorCode}}" required>
+        </div>
+        <div class="mb-3">
+            <label for="Sector" class="form-label">Sector</label>
+            <input type="text" name="Sector" id="Sector" class="form-control" placeholder="Sector" value="{{.company.Sector}}" required>
+        </div>
+        <div class="mb-3">
+            <label for="Name" class="form-label">Name</label>
+            <input type="text" name="Name" id="Name" class="form-control" placeholder="Company Name" value="{{.company.Name}}" required>
+        </div>
+        <div class="mb-3">
+            <label for="Address" class="form-label">Address</label>
+            <input type="text" name="Address" id="Address" class="form-control" placeholder="Address" value="{{.company.Address}}">
+        </div>
+        <div class="mb-3">
+            <label for="Owner" class="form-label">Owner</label>
+            <input type="text" name="Owner" id="Owner" class="form-control" placeholder="Owner" value="{{.company.Owner}}">
+        </div>
+        <div class="mb-3">
+            <label for="User" class="form-label">User</label>
+            <input type="text" name="User" id="User" class="form-control" placeholder="User" value="{{.company.User}}">
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> {{if .company.ID}}Update{{else}}Create{{end}}
+        </button>
+    </form>
+</div>
