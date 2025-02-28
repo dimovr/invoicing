@@ -26,7 +26,6 @@
                 {{template "company.html" .}}
             </div>
         {{else if eq .active "items"}}
-            <h1 class="mb-4">Items List</h1>
             <div id="itemForm" class="card mb-3" hx-get="/items/form" hx-trigger="load"></div>
             <table id="itemsTable" class="table table-striped">
                 <thead>
@@ -34,13 +33,13 @@
                         <th>Name</th>
                         <th>Price</th>
                         <th>Unit</th>
+                        <th>TaxRate</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody hx-get="/items/list" hx-trigger="load"></tbody>
             </table>
         {{else if eq .active "invoices"}}
-            <h1 class="mb-4">Invoices List</h1>
             <div id="invoiceForm" class="card mb-3" hx-get="/invoices/form" hx-trigger="load"></div>
             <table id="invoicesTable" class="table table-striped">
                 <thead>
