@@ -3,36 +3,66 @@
         {{if .company.ID}}
             <input type="hidden" name="ID" value="{{.company.ID}}">
         {{end}}
-        <div class="mb-3">
-            <label for="Code" class="form-label">Code</label>
-            <input type="text" name="Code" id="Code" class="form-control" placeholder="Company Code" value="{{.company.Code}}" required>
+
+        <!-- Group 1: Name and Address -->
+        <div class="mb-4">
+            <h5 class="mb-3">Company Information</h5>
+            <div class="row mb-2">
+                <label for="Name" class="col-3 col-form-label">Name</label>
+                <div class="col-9">
+                    <input type="text" name="Name" id="Name" class="form-control" placeholder="Company Name" value="{{.company.Name}}" required>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="Address" class="col-3 col-form-label">Address</label>
+                <div class="col-9">
+                    <input type="text" name="Address" id="Address" class="form-control" placeholder="Address" value="{{.company.Address}}">
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="SectorCode" class="form-label">Sector Code</label>
-            <input type="text" name="SectorCode" id="SectorCode" class="form-control" placeholder="Sector Code" value="{{.company.SectorCode}}" required>
+
+        <!-- Group 2: Owner and User -->
+        <div class="mb-4">
+            <h5 class="mb-3">Contact Information</h5>
+            <div class="row mb-2">
+                <label for="Owner" class="col-3 col-form-label">Owner</label>
+                <div class="col-9">
+                    <input type="text" name="Owner" id="Owner" class="form-control" placeholder="Owner" value="{{.company.Owner}}">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="User" class="col-3 col-form-label">User</label>
+                <div class="col-9">
+                    <input type="text" name="User" id="User" class="form-control" placeholder="User" value="{{.company.User}}">
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="Sector" class="form-label">Sector</label>
-            <input type="text" name="Sector" id="Sector" class="form-control" placeholder="Sector" value="{{.company.Sector}}" required>
+
+        <!-- Group 3: Code, Sector Code, and Sector -->
+        <div class="mb-4">
+            <h5 class="mb-3">Sector Information</h5>
+            <div class="row mb-2">
+                <label for="Code" class="col-3 col-form-label">Code</label>
+                <div class="col-9">
+                    <input type="text" name="Code" id="Code" class="form-control" placeholder="Company Code" value="{{.company.Code}}" required>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="SectorCode" class="col-3 col-form-label">Sector Code</label>
+                <div class="col-9">
+                    <input type="text" name="SectorCode" id="SectorCode" class="form-control" placeholder="Sector Code" value="{{.company.SectorCode}}" required>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="Sector" class="col-3 col-form-label">Sector</label>
+                <div class="col-9">
+                    <input type="text" name="Sector" id="Sector" class="form-control" placeholder="Sector" value="{{.company.Sector}}" required>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="Name" class="form-label">Name</label>
-            <input type="text" name="Name" id="Name" class="form-control" placeholder="Company Name" value="{{.company.Name}}" required>
-        </div>
-        <div class="mb-3">
-            <label for="Address" class="form-label">Address</label>
-            <input type="text" name="Address" id="Address" class="form-control" placeholder="Address" value="{{.company.Address}}">
-        </div>
-        <div class="mb-3">
-            <label for="Owner" class="form-label">Owner</label>
-            <input type="text" name="Owner" id="Owner" class="form-control" placeholder="Owner" value="{{.company.Owner}}">
-        </div>
-        <div class="mb-3">
-            <label for="User" class="form-label">User</label>
-            <input type="text" name="User" id="User" class="form-control" placeholder="User" value="{{.company.User}}">
-        </div>
+
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-save"></i> {{if .company.ID}}Update{{else}}Create{{end}}
+            <i class="bi bi-check"></i>
         </button>
     </form>
 </div>

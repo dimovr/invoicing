@@ -19,17 +19,26 @@ func NewCompanyHandler(db *gorm.DB) *CompanyHandler {
 func (h *CompanyHandler) GetCompany(c *gin.Context) {
 	var company models.Company
 	if err := h.DB.First(&company).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// No company exists, render empty form
-			c.HTML(http.StatusOK, "company.html", gin.H{})
+		if err != gorm.ErrRecordNotFound {
+			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
-		c.String(http.StatusInternalServerError, err.Error())
+		// No company exists, render empty form
+	}
+
+	// If this is an HTMX request, render only the form partial
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "company.html", gin.H{
+			"company": company,
+		})
 		return
 	}
-	// Company exists, render pre-filled form
-	c.HTML(http.StatusOK, "company.html", gin.H{
+
+	// Otherwise, render the full page
+	c.HTML(http.StatusOK, "index.html", gin.H{
 		"company": company,
+		"active":  "company",
+		"Title":   "Company",
 	})
 }
 
@@ -48,7 +57,10 @@ func (h *CompanyHandler) UpsertCompany(c *gin.Context) {
 				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
-			c.HTML(http.StatusCreated, "company.html", gin.H{"company": company})
+			// Render only the form partial for HTMX
+			c.HTML(http.StatusCreated, "company.html", gin.H{
+				"company": company,
+			})
 			return
 		}
 		c.String(http.StatusInternalServerError, err.Error())
@@ -67,5 +79,9 @@ func (h *CompanyHandler) UpsertCompany(c *gin.Context) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.HTML(http.StatusOK, "company.html", gin.H{"company": existingCompany})
+
+	// Render only the form partial for HTMX
+	c.HTML(http.StatusOK, "company.html", gin.H{
+		"company": existingCompany,
+	})
 }
