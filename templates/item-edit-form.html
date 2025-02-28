@@ -1,0 +1,18 @@
+<div class="card-body">
+    <form hx-put="/items/{{.ID}}" hx-target="#item-{{.ID}}" hx-swap="outerHTML">
+        <div class="input-group">
+            <input type="text" name="Name" class="form-control" value="{{.Name}}" required>
+            <input type="number" step="0.01" name="Price" class="form-control" value="{{.Price}}" required>
+            <input type="text" name="Unit" class="form-control" value="{{.Unit}}" required>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" 
+                    hx-get="/items/form"
+                    hx-target="#itemForm"
+                    hx-swap="innerHTML">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </form>
+</div>

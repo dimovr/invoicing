@@ -32,10 +32,13 @@ func main() {
 	r.PUT("/todos/:id", updateTodo)
 	r.DELETE("/todos/:id", deleteTodo)
 
-	itemHandler := &handlers.NewItemHandler(db)
+	itemHandler := handlers.NewItemHandler(db)
 	r.GET("/items", itemHandler.GetItems)
 	r.GET("/items/list", itemHandler.GetItemsPartial)
+	r.GET("/items/form", itemHandler.GetItemCreateForm)
 	r.POST("/items", itemHandler.CreateItem)
+	r.GET("/items/:id/edit", itemHandler.GetItemEditForm)
+	r.PUT("/items/:id", itemHandler.UpdateItem)
 	r.DELETE("/items/:id", itemHandler.DeleteItem)
 
 	r.Run(":8080")

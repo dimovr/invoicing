@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"invoicing-app/models" // Adjust this import path based on your module name
+	"todo-item-app/models" // Adjust this import path based on your module name
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -24,7 +24,6 @@ func NewItemHandler(db *gorm.DB) *ItemHandler {
 func (h *ItemHandler) GetItems(c *gin.Context) {
 	var items []models.Item
 	h.DB.Find(&items)
-	fmt.Println(items)
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"items":  items,
 		"active": "items",
@@ -59,4 +58,46 @@ func (h *ItemHandler) DeleteItem(c *gin.Context) {
 	}
 	h.DB.Delete(&item)
 	c.String(http.StatusOK, "")
+}
+
+func (h *ItemHandler) GetItemEditForm(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	var item models.Item
+	if err := h.DB.First(&item, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Not found")
+		return
+	}
+	c.HTML(http.StatusOK, "item-edit-form.html", gin.H{
+		"ID":    item.ID,
+		"Name":  item.Name,
+		"Price": item.Price,
+		"Unit":  item.Unit,
+	})
+}
+
+func (h *ItemHandler) GetItemCreateForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "item-create-form.html", gin.H{})
+}
+
+func (h *ItemHandler) UpdateItem(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	var item models.Item
+	if err := h.DB.First(&item, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Not found")
+		return
+	}
+
+	var updatedItem models.Item
+	if err := c.Bind(&updatedItem); err != nil {
+		c.String(http.StatusBadRequest, "Bad request")
+		return
+	}
+
+	// Update fields while preserving ID
+	item.Name = updatedItem.Name
+	item.Price = updatedItem.Price
+	item.Unit = updatedItem.Unit
+
+	h.DB.Save(&item)
+	c.HTML(http.StatusOK, "item.html", item)
 }
