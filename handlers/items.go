@@ -67,13 +67,7 @@ func (h *ItemHandler) GetItemEditForm(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not found")
 		return
 	}
-	c.HTML(http.StatusOK, "item-edit-form.html", gin.H{
-		"ID":      item.ID,
-		"Name":    item.Name,
-		"Price":   item.Price,
-		"Unit":    item.Unit,
-		"TaxRate": item.TaxRate,
-	})
+	c.HTML(http.StatusOK, "item-edit-form.html", gin.H{"item": item})
 }
 
 func (h *ItemHandler) GetItemCreateForm(c *gin.Context) {
