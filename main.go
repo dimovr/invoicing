@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+	"todo-item-app/handlers"
 	"todo-item-app/models"
 
 	"github.com/gin-gonic/gin"
@@ -32,11 +32,11 @@ func main() {
 	r.PUT("/todos/:id", updateTodo)
 	r.DELETE("/todos/:id", deleteTodo)
 
-	// models.Item Routes
-	r.GET("/items", getItems)
-	r.GET("/items/list", getItemsPartial)
-	r.POST("/items", createItem)
-	r.DELETE("/items/:id", deleteItem)
+	itemHandler := &handlers.NewItemHandler(db)
+	r.GET("/items", itemHandler.GetItems)
+	r.GET("/items/list", itemHandler.GetItemsPartial)
+	r.POST("/items", itemHandler.CreateItem)
+	r.DELETE("/items/:id", itemHandler.DeleteItem)
 
 	r.Run(":8080")
 }
@@ -93,47 +93,5 @@ func deleteTodo(c *gin.Context) {
 		return
 	}
 	db.Delete(&todo)
-	c.String(http.StatusOK, "")
-}
-
-func getItems(c *gin.Context) {
-	var items []models.Item
-	db.Find(&items)
-	fmt.Println(items)
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"items":  items,
-		"active": "items",
-	})
-}
-
-func getItemsPartial(c *gin.Context) {
-	var items []models.Item
-	db.Find(&items)
-	fmt.Println(items)
-	c.HTML(http.StatusOK, "items.html", gin.H{
-		"items": items,
-	})
-}
-
-func createItem(c *gin.Context) {
-	var item models.Item
-	if err := c.Bind(&item); err != nil {
-		c.String(http.StatusBadRequest, "Bad request")
-		return
-	}
-	fmt.Println("creating item: ", item.ID)
-	db.Create(&item)
-	fmt.Println("item created: ", item.ID)
-	c.HTML(http.StatusCreated, "item.html", item)
-}
-
-func deleteItem(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	var item models.Item
-	if err := db.First(&item, id).Error; err != nil {
-		c.String(http.StatusNotFound, "Not found")
-		return
-	}
-	db.Delete(&item)
 	c.String(http.StatusOK, "")
 }
