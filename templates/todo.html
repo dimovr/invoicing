@@ -1,0 +1,17 @@
+<li class="list-group-item" id="todo-{{.todo.ID}}">
+    <div class="d-flex justify-content-between align-items-center">
+        <span>{{.todo.Title}}</span>
+        <div>
+            <button class="btn btn-sm btn-{{if .todo.Completed}}success{{else}}secondary{{end}} me-2"
+                    hx-put="/todos/{{.todo.ID}}"
+                    hx-target="#todo-{{.todo.ID}}"
+                    hx-swap="outerHTML">
+                {{if .todo.Completed}}Done{{else}}Pending{{end}}
+            </button>
+            <button class="btn btn-sm btn-danger"
+                    hx-delete="/todos/{{.todo.ID}}"
+                    hx-target="#todo-{{.todo.ID}}"
+                    hx-swap="outerHTML">X</button>
+        </div>
+    </div>
+</li>
