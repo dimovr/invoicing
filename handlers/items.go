@@ -68,10 +68,11 @@ func (h *ItemHandler) GetItemEditForm(c *gin.Context) {
 		return
 	}
 	c.HTML(http.StatusOK, "item-edit-form.html", gin.H{
-		"ID":    item.ID,
-		"Name":  item.Name,
-		"Price": item.Price,
-		"Unit":  item.Unit,
+		"ID":      item.ID,
+		"Name":    item.Name,
+		"Price":   item.Price,
+		"Unit":    item.Unit,
+		"TaxRate": item.TaxRate,
 	})
 }
 
@@ -97,6 +98,7 @@ func (h *ItemHandler) UpdateItem(c *gin.Context) {
 	item.Name = updatedItem.Name
 	item.Price = updatedItem.Price
 	item.Unit = updatedItem.Unit
+	item.TaxRate = updatedItem.TaxRate
 
 	h.DB.Save(&item)
 	c.HTML(http.StatusOK, "item.html", item)
