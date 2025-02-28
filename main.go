@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&models.Company{}, &models.Item{})
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Item{}, &models.Supplier{})
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
@@ -35,6 +35,15 @@ func main() {
 	r.GET("/items/:id/edit", itemHandler.GetItemEditForm)
 	r.PUT("/items/:id", itemHandler.UpdateItem)
 	r.DELETE("/items/:id", itemHandler.DeleteItem)
+
+	supplierHandler := handlers.NewSupplierHandler(db)
+	r.GET("/suppliers", supplierHandler.GetSuppliers)
+	r.GET("/suppliers/list", supplierHandler.GetSuppliersPartial)
+	r.GET("/suppliers/form", supplierHandler.GetSupplierCreateForm)
+	r.POST("/suppliers", supplierHandler.CreateSupplier)
+	r.GET("/suppliers/:id/edit", supplierHandler.GetSupplierEditForm)
+	r.PUT("/suppliers/:id", supplierHandler.UpdateSupplier)
+	r.DELETE("/suppliers/:id", supplierHandler.DeleteSupplier)
 
 	r.Run(":8080")
 }

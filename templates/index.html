@@ -13,8 +13,8 @@
             <div class="navbar-nav">
                 <a class="nav-link {{if eq .active "company"}}active{{end}}" href="/company">Company</a>
                 <a class="nav-link {{if eq .active "items"}}active{{end}}" href="/items">Items</a>
-                <a class="nav-link {{if eq .active "invoices"}}active{{end}}" href="/invoices">Invoices</a>
                 <a class="nav-link {{if eq .active "suppliers"}}active{{end}}" href="/suppliers">Suppliers</a>
+                <a class="nav-link {{if eq .active "invoices"}}active{{end}}" href="/invoices">Invoices</a>
             </div>
         </div>
     </nav>
@@ -39,6 +39,18 @@
                 </thead>
                 <tbody hx-get="/items/list" hx-trigger="load"></tbody>
             </table>
+        {{else if eq .active "suppliers"}}
+            <div id="supplierForm" class="card mb-3" hx-get="/suppliers/form" hx-trigger="load"></div>
+            <table id="suppliersTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>
+            </table>
         {{else if eq .active "invoices"}}
             <div id="invoiceForm" class="card mb-3" hx-get="/invoices/form" hx-trigger="load"></div>
             <table id="invoicesTable" class="table table-striped">
@@ -50,19 +62,6 @@
                     </tr>
                 </thead>
                 <tbody hx-get="/invoices/list" hx-trigger="load"></tbody>
-            </table>
-        {{else if eq .active "suppliers"}}
-            <h1 class="mb-4">Suppliers List</h1>
-            <div id="supplierForm" class="card mb-3" hx-get="/suppliers/form" hx-trigger="load"></div>
-            <table id="suppliersTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Contact</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>
             </table>
         {{end}}
     </div>

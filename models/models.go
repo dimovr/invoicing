@@ -30,12 +30,11 @@ type Company struct {
 	User       string `gorm:"size:255" json:"user"`
 }
 
-// Supplier represents a vendor that provides goods or services
 type Supplier struct {
 	gorm.Model
 	ID      uint   `gorm:"primaryKey" json:"ID"`
-	Name    string `gorm:"size:255;not null"  json:"name"`
-	Address string `gorm:"size:255;not null" json:"address"`
+	Name    string `json:"name"`
+	Address string `json:"address"`
 }
 
 // // Invoice represents a bill from a supplier

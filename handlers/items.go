@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -33,7 +32,6 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 func (h *ItemHandler) GetItemsPartial(c *gin.Context) {
 	var items []models.Item
 	h.DB.Find(&items)
-	fmt.Println(items)
 	c.HTML(http.StatusOK, "items.html", gin.H{
 		"items": items,
 	})
@@ -60,6 +58,10 @@ func (h *ItemHandler) DeleteItem(c *gin.Context) {
 	c.String(http.StatusOK, "")
 }
 
+func (h *ItemHandler) GetItemCreateForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "item-create-form.html", gin.H{})
+}
+
 func (h *ItemHandler) GetItemEditForm(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	var item models.Item
@@ -68,10 +70,6 @@ func (h *ItemHandler) GetItemEditForm(c *gin.Context) {
 		return
 	}
 	c.HTML(http.StatusOK, "item-edit-form.html", gin.H{"item": item})
-}
-
-func (h *ItemHandler) GetItemCreateForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "item-create-form.html", gin.H{})
 }
 
 func (h *ItemHandler) UpdateItem(c *gin.Context) {
