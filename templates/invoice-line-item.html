@@ -1,0 +1,42 @@
+<div id="lineItemsTableContainer">
+    <div class="mb-3">
+        <table id="lineItemsTable" class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Unit</th>
+                    <th>Tax Rate</th>
+                    <th>Count</th>
+                    <th>Subtotal</th>
+                    <th>Tax Amount</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .LineItems}}
+                <tr>
+                    <td>{{.Name}}</td>
+                    <td>${{.Price}}</td>
+                    <td>{{.Unit}}</td>
+                    <td>{{.TaxRate}}%</td>
+                    <td>{{.Count}}</td>
+                    <td>${{.Subtotal}}</td>
+                    <td>${{.TaxAmount}}</td>
+                    <td>${{.Total}}</td>
+                    <td>
+                        <button hx-delete="/invoices/line-items/{{.ID}}" 
+                                hx-target="#lineItemsTableContainer" 
+                                hx-swap="outerHTML"
+                                hx-confirm="Are you sure?"
+                                class="btn btn-danger btn-sm">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
