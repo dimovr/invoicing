@@ -1,4 +1,7 @@
 <div id="invoiceForm" class="container">
+
+    {{template "invoice-create-form.html" .}}
+
     <div class="container mt-4">
         <h5>Invoices List</h5>
         <table id="invoicesTable" class="table">
@@ -20,6 +23,4 @@
             </tbody>
         </table>
     </div>
-
-    {{template "invoice-create-form.html" .}}
 </div>
