@@ -66,10 +66,6 @@ func (ic *InvoiceController) GetInvoiceForm(c *gin.Context) {
 	// Format current date
 	currentDate := time.Now().Format("02.01.2006")
 
-	fmt.Println(company)
-	fmt.Println(items)
-	fmt.Println(suppliers)
-
 	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
 		"Company":     company,
 		"Items":       items,

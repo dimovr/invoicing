@@ -67,8 +67,4 @@ func setupRoutes(router *gin.Engine, db *gorm.DB) {
 	router.GET("/invoices", invoiceController.GetInvoices)
 	router.GET("/invoices/create", invoiceController.GetInvoiceForm)
 	router.POST("/api/invoices", invoiceController.SaveInvoice)
-
-	// API routes for ajax requests
-	router.GET("/api/items/details", invoiceController.GetItemDetails)
-	router.GET("/api/suppliers/details", invoiceController.GetSupplierDetails)
 }
