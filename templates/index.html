@@ -27,30 +27,32 @@
             </div>
         {{else if eq .active "items"}}
             <div id="itemForm" class="card mb-3" hx-get="/items/form" hx-trigger="load"></div>
-            <table id="itemsTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Unit</th>
-                        <th>TaxRate</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody hx-get="/items/list" hx-trigger="load"></tbody>
-            </table>
+                <table id="itemsTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Unit</th>
+                            <th>TaxRate</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody hx-get="/items/list" hx-trigger="load"></tbody>
+                </table>
+            </div>
         {{else if eq .active "suppliers"}}
             <div id="supplierForm" class="card mb-3" hx-get="/suppliers/form" hx-trigger="load"></div>
-            <table id="suppliersTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>
-            </table>
+                <table id="suppliersTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>
+                </table>
+            </div>
         {{else if eq .active "invoices"}}    
             {{template "invoices.html" .}}
         {{end}}

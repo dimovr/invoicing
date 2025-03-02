@@ -23,7 +23,7 @@ func (h *SupplierHandler) GetSuppliers(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"suppliers": suppliers,
 		"active":    "suppliers",
-		// "Title":     "Suppliers",
+		"Title":     "Suppliers",
 	})
 }
 

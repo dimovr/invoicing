@@ -57,15 +57,11 @@ func main() {
 	// Add invoice routes
 	invoiceHandler := handlers.NewInvoiceHandler(db)
 	r.GET("/invoices", invoiceHandler.GetInvoices)
-	r.GET("/invoices/list", invoiceHandler.GetInvoicesPartial)
-	r.GET("/invoices/form", invoiceHandler.GetInvoiceCreateForm)
 	r.POST("/invoices", invoiceHandler.CreateInvoice)
-	r.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)
-
-	// Line item handling for the invoice form
-	r.POST("/invoices/line-items", invoiceHandler.AddLineItem)
-	r.DELETE("/invoices/line-items/:tempId", invoiceHandler.RemoveLineItem)
-	r.GET("/invoices/summary", invoiceHandler.GetInvoiceSummary)
+	r.POST("/invoices/:invoiceID/line-items", invoiceHandler.AddLineItem)
+	r.DELETE("/invoices/:invoiceID/line-items/:lineItemID", invoiceHandler.RemoveLineItem)
+	r.GET("/invoices/:invoiceID/summary", invoiceHandler.GetSummary)
+	r.POST("/invoices/:invoiceID/finalize", invoiceHandler.FinalizeInvoice)
 
 	r.Run(":8080")
 }

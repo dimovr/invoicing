@@ -1,70 +1,17 @@
-<form id="invoiceCreateForm" 
-      hx-post="/invoices" 
-      hx-target="#invoicesTable tbody" 
-      hx-swap="beforeend"
-      hx-indicator=".htmx-indicator">
-    <div class="mb-3">
-        <select id="supplierId" name="SupplierID" class="form-select" required>
-            <option value="">Select Supplier</option>
-            {{range .suppliers}}
-                <option value="{{.ID}}">{{.Name}} - {{.Address}}</option>
-            {{end}}
-        </select>
-    </div>
-
-    <!-- Line Item Selection -->
-    <div class="mb-3">
-        <div class="input-group" 
-             id="addLineItem" 
-             hx-post="/invoices/line-items" 
-             hx-target="#lineItemsTableContainer" 
-             hx-swap="outerHTML"
-             hx-include="#itemId, #itemCount">
-            <select id="itemId" name="ItemID" class="form-select" required>
-                <option value="">Select an item</option>
-                {{range .items}}
-                    <option value="{{.ID}}">{{.Name}} - {{.Price}} per {{.Unit}} ({{.TaxRate}}% tax)</option>
+<div class="container mt-4">
+    <h5>Create New Invoice</h5>
+    <form id="startInvoice" hx-post="/invoices" hx-target="#invoiceContent" hx-swap="innerHTML">
+        <div class="mb-3">
+            <select name="supplierID" class="form-select" required>
+                <option value="">Select Supplier</option>
+                {{range .suppliers}}
+                    <option value="{{.ID}}">{{.Name}} - {{.Address}}</option>
                 {{end}}
             </select>
-            <input type="number" 
-                   id="itemCount" 
-                   name="Count" 
-                   class="form-control" 
-                   placeholder="Count" 
-                   min="1" 
-                   value="1" 
-                   required>
-            <button type="submit" class="btn btn-secondary">
-                <i class="bi bi-plus"></i>
-            </button>
         </div>
-    </div>
-
-    <!-- Line Items Table and Summary Container -->
-    <div id="lineItemsTableContainer">
-        <div class="mb-3">
-            <table id="lineItemsTable" class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Unit</th>
-                        <th>Tax Rate</th>
-                        <th>Count</th>
-                        <th>Subtotal</th>
-                        <th>Tax Amount</th>
-                        <th>Total</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Populated by server -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary">
-        Create Invoice
-    </button>
-</form>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus"> Start </i>
+        </button>
+    </form>
+    <div id="invoiceContent"></div>
+</div>

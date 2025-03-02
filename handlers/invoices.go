@@ -7,7 +7,6 @@ import (
 	"todo-item-app/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +27,8 @@ func (h *InvoiceHandler) GetInvoices(c *gin.Context) {
 
 	var suppliers []models.Supplier
 	h.DB.Find(&suppliers)
+
+	fmt.Println(suppliers)
 
 	var items []models.Item
 	h.DB.Find(&items)
@@ -51,213 +52,150 @@ func (h *InvoiceHandler) GetInvoicesPartial(c *gin.Context) {
 	})
 }
 
-func (h *InvoiceHandler) GetInvoiceCreateForm(c *gin.Context) {
-	var suppliers []models.Supplier
-	h.DB.Find(&suppliers)
-
-	var items []models.Item
-	h.DB.Find(&items)
-
-	fmt.Println(suppliers)
-	fmt.Println(items)
-
-	c.HTML(http.StatusOK, "invoice-create-form.html", gin.H{
-		"suppliers": suppliers,
-		"items":     items,
-		"active":    "invoices",
-		"Title":     "Invoices",
-	})
-}
-
-// CreateInvoice handles the creation of a new invoice
+// CreateInvoice - POST /invoices
 func (h *InvoiceHandler) CreateInvoice(c *gin.Context) {
-	// Parse form data
-	supplierID, err := strconv.ParseUint(c.PostForm("SupplierID"), 10, 64)
+	supplierIDStr := c.PostForm("supplierID")
+	supplierID, err := strconv.Atoi(supplierIDStr)
 	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid supplier ID")
+		c.String(http.StatusBadRequest, "Invalid supplierID")
 		return
 	}
 
-	subtotal, _ := strconv.ParseFloat(c.PostForm("Subtotal"), 64)
-	taxAmount, _ := strconv.ParseFloat(c.PostForm("TaxAmount"), 64)
-	total, _ := strconv.ParseFloat(c.PostForm("Total"), 64)
-
-	// Create invoice
-	invoice := models.Invoice{
-		SupplierID: uint(supplierID),
-		Subtotal:   subtotal,
-		TaxAmount:  taxAmount,
-		Total:      total,
-	}
-
-	// Start a transaction to ensure all operations succeed or fail together
-	tx := h.DB.Begin()
-
-	if err := tx.Create(&invoice).Error; err != nil {
-		tx.Rollback()
+	invoice := models.Invoice{SupplierID: uint(supplierID), Status: "draft"}
+	if err := h.DB.Create(&invoice).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create invoice")
 		return
 	}
 
-	// Get line items from the form
-	// We're expecting a list of item IDs and counts from hidden form fields
-	lineItemIDs := c.PostFormArray("LineItems[ItemID]")
-	lineItemCounts := c.PostFormArray("LineItems[Count]")
-
-	if len(lineItemIDs) != len(lineItemCounts) {
-		tx.Rollback()
-		c.String(http.StatusBadRequest, "Line item data mismatch")
-		return
-	}
-
-	// Process each line item
-	for i := 0; i < len(lineItemIDs); i++ {
-		itemID, err := strconv.ParseUint(lineItemIDs[i], 10, 64)
-		if err != nil {
-			tx.Rollback()
-			c.String(http.StatusBadRequest, "Invalid item ID")
-			return
-		}
-
-		count, err := strconv.Atoi(lineItemCounts[i])
-		if err != nil {
-			tx.Rollback()
-			c.String(http.StatusBadRequest, "Invalid count")
-			return
-		}
-
-		// Get the item to calculate the amounts
-		var item models.Item
-		if err := tx.First(&item, itemID).Error; err != nil {
-			tx.Rollback()
-			c.String(http.StatusNotFound, "Item not found")
-			return
-		}
-
-		subtotal := item.Price * float64(count)
-		taxAmount := subtotal * float64(item.TaxRate) / 100
-		total := subtotal + taxAmount
-
-		// Create line item
-		lineItem := models.InvoiceLineItem{
-			InvoiceID: invoice.ID,
-			ItemID:    uint(itemID),
-			Count:     count,
-			Subtotal:  subtotal,
-			TaxAmount: taxAmount,
-			Total:     total,
-		}
-
-		if err := tx.Create(&lineItem).Error; err != nil {
-			tx.Rollback()
-			c.String(http.StatusInternalServerError, "Failed to create line item")
-			return
-		}
-	}
-
-	// Commit the transaction
-	tx.Commit()
-
-	// Preload supplier for the template
-	h.DB.Preload("Supplier").First(&invoice, invoice.ID)
-
-	// Return the invoice row to be added to the table
-	c.HTML(http.StatusCreated, "invoice.html", invoice)
+	var items []models.Item
+	h.DB.Find(&items)
+	c.HTML(http.StatusOK, "invoice_content.html", gin.H{
+		"InvoiceID": invoice.ID,
+		"Items":     items,
+	})
 }
 
-// DeleteInvoice handles the deletion of an invoice
-func (h *InvoiceHandler) DeleteInvoice(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-
-	// Start transaction to delete invoice and its line items
-	tx := h.DB.Begin()
-
-	// Delete line items first (due to foreign key constraints)
-	if err := tx.Where("invoice_id = ?", id).Delete(&models.InvoiceLineItem{}).Error; err != nil {
-		tx.Rollback()
-		c.String(http.StatusInternalServerError, "Failed to delete line items")
-		return
-	}
-
-	// Delete the invoice
-	if err := tx.Delete(&models.Invoice{}, id).Error; err != nil {
-		tx.Rollback()
-		c.String(http.StatusInternalServerError, "Failed to delete invoice")
-		return
-	}
-
-	tx.Commit()
-	c.String(http.StatusOK, "")
-}
-
-// AddLineItem adds a line item to the invoice form (temporary, not persisted yet)
+// AddLineItem - POST /invoices/:invoiceID/line-items
 func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
-	itemID, err := strconv.Atoi(c.PostForm("ItemID"))
-	if err != nil || itemID <= 0 {
-		c.String(http.StatusBadRequest, "Invalid item ID")
+	invoiceIDStr := c.Param("invoiceID")
+	invoiceID, err := strconv.Atoi(invoiceIDStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid invoiceID")
 		return
 	}
 
-	count, err := strconv.Atoi(c.PostForm("Count"))
-	if err != nil || count <= 0 {
-		c.String(http.StatusBadRequest, "Invalid count")
+	var invoice models.Invoice
+	if err := h.DB.First(&invoice, invoiceID).Error; err != nil || invoice.Status != "draft" {
+		c.String(http.StatusNotFound, "Invoice not found or not draft")
 		return
 	}
 
-	// Fetch the item details
+	itemIDStr := c.PostForm("itemId")
+	countStr := c.PostForm("count")
+	sellingPriceStr := c.PostForm("sellingPrice")
+
+	itemID, _ := strconv.Atoi(itemIDStr)
+	count, _ := strconv.Atoi(countStr)
+	sellingPrice, _ := strconv.ParseFloat(sellingPriceStr, 64)
+
 	var item models.Item
 	if err := h.DB.First(&item, itemID).Error; err != nil {
-		c.String(http.StatusNotFound, "Item not found")
+		c.String(http.StatusBadRequest, "Invalid itemID")
 		return
 	}
 
-	// Calculate amounts
-	subtotal := item.Price * float64(count)
-	taxAmount := subtotal * float64(item.TaxRate) / 100
-	total := subtotal + taxAmount
+	subtotal := float64(count) * sellingPrice
+	lineItem := models.InvoiceLineItem{
+		InvoiceID:    uint(invoiceID),
+		ItemID:       uint(itemID),
+		Count:        count,
+		SellingPrice: sellingPrice,
+		Subtotal:     subtotal,
+	}
+	if err := h.DB.Create(&lineItem).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Failed to add line item")
+		return
+	}
 
-	// Generate a temporary ID for the line item in the form
-	tempId := uuid.New().String()
-
-	// Render the line item row
-	c.HTML(http.StatusOK, "invoice-line-item.html", gin.H{
-		"tempId":    tempId,
-		"item":      item,
-		"count":     count,
-		"subtotal":  subtotal,
-		"taxAmount": taxAmount,
-		"total":     total,
+	c.HTML(http.StatusOK, "line_item_row.html", gin.H{
+		"LineItemID":   lineItem.ID,
+		"InvoiceID":    invoiceID,
+		"Name":         item.Name,
+		"Unit":         item.Unit,
+		"Count":        count,
+		"SellingPrice": sellingPrice,
+		"Subtotal":     subtotal,
 	})
-
-	// Also update the invoice summary
-	// This would typically be done with another HTMX request in practice
-	// but we include it here for simplicity with a swap-oob attribute
-	c.Header("HX-Trigger", `{"updateInvoiceSummary": {"tempId": "`+tempId+`"}}`)
 }
 
-// RemoveLineItem removes a line item from the invoice form
+// RemoveLineItem - DELETE /invoices/:invoiceID/line-items/:lineItemID
 func (h *InvoiceHandler) RemoveLineItem(c *gin.Context) {
-	// tempId := c.Param("tempId")
+	invoiceIDStr := c.Param("invoiceID")
+	lineItemIDStr := c.Param("lineItemID")
 
-	// No need to do any database operations since the line item hasn't been persisted yet
-	// Just remove it from the UI and update the totals
-	c.String(http.StatusOK, "")
-	c.Header("HX-Trigger", `{"updateInvoiceSummary": {"removed": "true"}}`)
+	invoiceID, _ := strconv.Atoi(invoiceIDStr)
+	lineItemID, _ := strconv.Atoi(lineItemIDStr)
+
+	var invoice models.Invoice
+	if err := h.DB.First(&invoice, invoiceID).Error; err != nil || invoice.Status != "draft" {
+		c.String(http.StatusNotFound, "Invoice not found or not draft")
+		return
+	}
+
+	if err := h.DB.Delete(&models.InvoiceLineItem{}, lineItemID).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Failed to remove line item")
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
-// GetInvoiceSummary calculates and returns the updated invoice summary
-func (h *InvoiceHandler) GetInvoiceSummary(c *gin.Context) {
-	var subtotal, taxAmount, total float64
+// GetSummary - GET /invoices/:invoiceID/summary
+func (h *InvoiceHandler) GetSummary(c *gin.Context) {
+	invoiceIDStr := c.Param("invoiceID")
+	invoiceID, err := strconv.Atoi(invoiceIDStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid invoiceID")
+		return
+	}
 
-	// In a real implementation, we would calculate these based on line items in the form
-	// For now, we're simulating this with values from the request for demonstration
-	subtotal, _ = strconv.ParseFloat(c.Query("subtotal"), 64)
-	taxAmount, _ = strconv.ParseFloat(c.Query("taxAmount"), 64)
-	total, _ = strconv.ParseFloat(c.Query("total"), 64)
+	var lineItems []models.InvoiceLineItem
+	h.DB.Where("invoice_id = ?", invoiceID).Find(&lineItems)
 
-	c.HTML(http.StatusOK, "invoice-summary.html", gin.H{
-		"subtotal":  subtotal,
-		"taxAmount": taxAmount,
-		"total":     total,
+	subtotal := 0.0
+	for _, li := range lineItems {
+		subtotal += li.Subtotal
+	}
+	total := subtotal // Add tax logic if needed
+
+	c.HTML(http.StatusOK, "invoice_summary.html", gin.H{
+		"InvoiceID": invoiceID,
+		"Subtotal":  subtotal,
+		"Total":     total,
+	})
+}
+
+// FinalizeInvoice - POST /invoices/:invoiceID/finalize
+func (h *InvoiceHandler) FinalizeInvoice(c *gin.Context) {
+	invoiceIDStr := c.Param("invoiceID")
+	invoiceID, err := strconv.Atoi(invoiceIDStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid invoiceID")
+		return
+	}
+
+	var invoice models.Invoice
+	if err := h.DB.First(&invoice, invoiceID).Error; err != nil || invoice.Status != "draft" {
+		c.String(http.StatusNotFound, "Invoice not found or not draft")
+		return
+	}
+
+	if err := h.DB.Model(&invoice).Update("status", "finalized").Error; err != nil {
+		c.String(http.StatusInternalServerError, "Failed to finalize invoice")
+		return
+	}
+
+	c.HTML(http.StatusOK, "invoice_finalized.html", gin.H{
+		"InvoiceID": invoiceID,
 	})
 }

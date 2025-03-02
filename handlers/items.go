@@ -26,6 +26,7 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"items":  items,
 		"active": "items",
+		"Title":  "Items",
 	})
 }
 
