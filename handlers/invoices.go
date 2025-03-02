@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"todo-item-app/models"
@@ -28,15 +27,9 @@ func (h *InvoiceHandler) GetInvoices(c *gin.Context) {
 	var suppliers []models.Supplier
 	h.DB.Find(&suppliers)
 
-	fmt.Println(suppliers)
-
-	var items []models.Item
-	h.DB.Find(&items)
-
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"invoices":  invoices,
 		"suppliers": suppliers,
-		"items":     items,
 		"active":    "invoices",
 		"Title":     "Invoices",
 	})
@@ -91,11 +84,11 @@ func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
 	}
 
 	itemIDStr := c.PostForm("itemId")
-	countStr := c.PostForm("count")
+	quantityStr := c.PostForm("quantity")
 	sellingPriceStr := c.PostForm("sellingPrice")
 
 	itemID, _ := strconv.Atoi(itemIDStr)
-	count, _ := strconv.Atoi(countStr)
+	quantity, _ := strconv.Atoi(quantityStr)
 	sellingPrice, _ := strconv.ParseFloat(sellingPriceStr, 64)
 
 	var item models.Item
@@ -104,11 +97,11 @@ func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
 		return
 	}
 
-	subtotal := float64(count) * sellingPrice
+	subtotal := float64(quantity) * sellingPrice
 	lineItem := models.InvoiceLineItem{
 		InvoiceID:    uint(invoiceID),
 		ItemID:       uint(itemID),
-		Count:        count,
+		Quantity:     quantity,
 		SellingPrice: sellingPrice,
 		Subtotal:     subtotal,
 	}
@@ -122,7 +115,7 @@ func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
 		"InvoiceID":    invoiceID,
 		"Name":         item.Name,
 		"Unit":         item.Unit,
-		"Count":        count,
+		"Quantity":     quantity,
 		"SellingPrice": sellingPrice,
 		"Subtotal":     subtotal,
 	})
@@ -198,4 +191,15 @@ func (h *InvoiceHandler) FinalizeInvoice(c *gin.Context) {
 	c.HTML(http.StatusOK, "invoice_finalized.html", gin.H{
 		"InvoiceID": invoiceID,
 	})
+}
+
+func (h *InvoiceHandler) DeleteInvoice(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("invoiceID"))
+	var invoice models.Invoice
+	if err := h.DB.First(&invoice, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Not found")
+		return
+	}
+	h.DB.Delete(&invoice)
+	c.String(http.StatusOK, "")
 }

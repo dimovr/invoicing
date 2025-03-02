@@ -43,8 +43,8 @@ type Invoice struct {
 	SupplierID uint              `gorm:"not null" json:"supplier_id"`
 	Supplier   Supplier          `gorm:"foreignKey:SupplierID" json:"supplier"`
 	LineItems  []InvoiceLineItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
-	Subtotal   float64           `json:"subtotal"`   // Calculated: Sum of item prices * counts
-	TaxAmount  float64           `json:"tax_amount"` // Calculated: Sum of (item price * count * tax_rate)
+	Subtotal   float64           `json:"subtotal"`   // Calculated: Sum of item prices * quantitys
+	TaxAmount  float64           `json:"tax_amount"` // Calculated: Sum of (item price * quantity * tax_rate)
 	Total      float64           `json:"total"`      // Calculated: Subtotal + TaxAmount
 	Status     string            `gorm:"default: draft" json:"status"`
 }
@@ -55,9 +55,9 @@ type InvoiceLineItem struct {
 	InvoiceID    uint    `gorm:"not null" json:"invoice_id"`
 	ItemID       uint    `gorm:"not null" json:"item_id"`
 	Item         Item    `gorm:"foreignKey:ItemID" json:"item"`
-	Count        int     `gorm:"not null" json:"count"`
-	Subtotal     float64 `json:"subtotal"`   // Calculated: Item.Price * Count
-	TaxAmount    float64 `json:"tax_amount"` // Calculated: Item.Price * Count * (Item.TaxRate / 100)
+	Quantity     int     `gorm:"not null" json:"quantity"`
+	Subtotal     float64 `json:"subtotal"`   // Calculated: Item.Price * Quantity
+	TaxAmount    float64 `json:"tax_amount"` // Calculated: Item.Price * Quantity * (Item.TaxRate / 100)
 	Total        float64 `json:"total"`      // Calculated: Subtotal + TaxAmount
 	SellingPrice float64 `gorm:"not null" json:"selling_price"`
 }

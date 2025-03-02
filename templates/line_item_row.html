@@ -2,8 +2,10 @@
     <td>{{.Name}}</td>
     <td>\${{.SellingPrice}}</td>
     <td>{{.Unit}}</td>
-    <td>{{.Count}}</td>
+    <td>{{.Quantity}}</td>
     <td>\${{.Subtotal}}</td>
+    <td>\${{.TaxAmount}}</td>
+    <td>\${{.Total}}</td>
     <td>
         <button hx-delete="/invoices/{{.InvoiceID}}/line-items/{{.LineItemID}}" 
                 hx-target="closest tr" 

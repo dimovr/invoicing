@@ -7,7 +7,7 @@
                     <th>Price</th>
                     <th>Unit</th>
                     <th>Tax Rate</th>
-                    <th>Count</th>
+                    <th>Quantity</th>
                     <th>Subtotal</th>
                     <th>Tax Amount</th>
                     <th>Total</th>
@@ -21,7 +21,7 @@
                     <td>${{.Price}}</td>
                     <td>{{.Unit}}</td>
                     <td>{{.TaxRate}}%</td>
-                    <td>{{.Count}}</td>
+                    <td>{{.Quantity}}</td>
                     <td>${{.Subtotal}}</td>
                     <td>${{.TaxAmount}}</td>
                     <td>${{.Total}}</td>
@@ -29,9 +29,8 @@
                         <button hx-delete="/invoices/line-items/{{.ID}}" 
                                 hx-target="#lineItemsTableContainer" 
                                 hx-swap="outerHTML"
-                                hx-confirm="Are you sure?"
                                 class="btn btn-danger btn-sm">
-                            Remove
+                            <i class="bi bi-trash"></i>
                         </button>
                     </td>
                 </tr>

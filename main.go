@@ -62,6 +62,7 @@ func main() {
 	r.DELETE("/invoices/:invoiceID/line-items/:lineItemID", invoiceHandler.RemoveLineItem)
 	r.GET("/invoices/:invoiceID/summary", invoiceHandler.GetSummary)
 	r.POST("/invoices/:invoiceID/finalize", invoiceHandler.FinalizeInvoice)
+	r.DELETE("/invoices/:invoiceID", invoiceHandler.DeleteInvoice)
 
 	r.Run(":8080")
 }
