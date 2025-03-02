@@ -121,8 +121,8 @@
                     <tr id="item-row-template" class="hidden">
                         <td class="p-2 text-center row-number"></td>
                         <td class="p-2">
-                            <select class="w-full border item-selector" hx-get="/api/items/details" hx-trigger="change" hx-target="closest tr" hx-swap="none" hx-vals='js:{itemId: this.value}'>
-                                <option value="">Select item</option>
+                            <select class="w-full border item-selector">
+                                <option value="">Proizvod</option>
                                 {{ range .Items }}
                                 <option value="{{ .ID }}" data-price="{{ .Price }}" data-unit="{{ .Unit }}" data-tax-rate="{{ .TaxRate }}">{{ .Name }}</option>
                                 {{ end }}
@@ -158,7 +158,8 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="5" class="p-2 text-right font-bold">Total:</td>
+                        <!-- <td colspan="5" class="p-2 text-right font-bold">Total:</td> -->
+                        <td colspan="5" class="p-2 text-right font-bold"></td>
                         <td class="p-2 text-right font-bold" id="total-value">0.00</td>
                         <td colspan="3" class="p-2"></td>
                         <td colspan="1" class="p-2"></td>
@@ -238,29 +239,6 @@
             });
         });
         
-        // HTMX event for item selection
-        document.body.addEventListener('htmx:afterSwap', function(event) {
-            if (event.detail.target.matches('tr')) {
-                const row = event.detail.target;
-                const select = row.querySelector('.item-selector');
-                if (select) {
-                    const option = select.options[select.selectedIndex];
-                    if (option) {
-                        const price = option.getAttribute('data-price');
-                        const unit = option.getAttribute('data-unit');
-                        const taxRate = option.getAttribute('data-tax-rate');
-                        
-                        row.querySelector('.item-price').value = price || '0.00';
-                        row.querySelector('.item-unit').value = unit || '';
-                        row.querySelector('.item-vat-rate').value = taxRate || '0';
-                        
-                        calculateRow(row);
-                        calculateTotals();
-                    }
-                }
-            }
-        });
-        
         function addNewRow() {
             const tbody = document.getElementById('invoice-items');
             const template = document.getElementById('item-row-template');
@@ -279,6 +257,31 @@
         }
         
         function addRowEventListeners(row) {
+            // Item selector change
+            const itemSelector = row.querySelector('.item-selector');
+            itemSelector.addEventListener('change', function() {
+                if (this.value) {
+                    const selectedOption = this.options[this.selectedIndex];
+                    
+                    // Get data from selected option
+                    const price = selectedOption.getAttribute('data-price') || '0.00';
+                    const unit = selectedOption.getAttribute('data-unit') || '';
+                    const taxRate = selectedOption.getAttribute('data-tax-rate') || '0';
+                    
+                    // Populate fields
+                    row.querySelector('.item-unit').value = unit;
+                    row.querySelector('.item-price').value = price;
+                    row.querySelector('.item-vat-rate').value = taxRate;
+                    
+                    // Calculate row
+                    calculateRow(row);
+                    calculateTotals();
+                } else {
+                    // Reset row if no item selected
+                    resetRow(row);
+                }
+            });
+            
             // Quantity change
             row.querySelector('.item-quantity').addEventListener('input', function() {
                 calculateRow(row);
@@ -302,6 +305,27 @@
                 calculateRow(row);
                 calculateTotals();
             });
+        }
+        
+        function resetRow(row) {
+            // Reset all input fields
+            row.querySelector('.item-unit').value = '';
+            row.querySelector('.item-price').value = '0.00';
+            row.querySelector('.item-quantity').value = '1';
+            row.querySelector('.item-dependent-costs').value = '0.00';
+            row.querySelector('.item-price-difference').value = '0.00';
+            row.querySelector('.item-vat-rate').value = '0';
+            row.querySelector('.item-note').value = '';
+            
+            // Reset calculated fields
+            row.querySelector('.item-value').textContent = '0.00';
+            row.querySelector('.item-value-without-vat').textContent = '0.00';
+            row.querySelector('.item-vat-amount').textContent = '0.00';
+            row.querySelector('.item-value-with-vat').textContent = '0.00';
+            row.querySelector('.item-unit-price').textContent = '0.00';
+            
+            // Update totals
+            calculateTotals();
         }
         
         function calculateRow(row) {
