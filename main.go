@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Invoice{}, &models.LineItem{}, &models.Supplier{})
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{})
 
 	r := gin.Default()
 	// Define custom template functions
@@ -54,16 +54,21 @@ func main() {
 	r.PUT("/suppliers/:id", supplierHandler.UpdateSupplier)
 	r.DELETE("/suppliers/:id", supplierHandler.DeleteSupplier)
 
-	// Add invoice routes
-	invoiceHandler := handlers.NewInvoiceHandler(db)
-	r.GET("/invoices", invoiceHandler.GetInvoices)
-	r.GET("/invoices/:invoiceID", invoiceHandler.ShowInvoice)
-	r.POST("/invoices", invoiceHandler.CreateInvoice)
-	r.POST("/invoices/:invoiceID/line-items", invoiceHandler.AddLineItem)
-	r.DELETE("/invoices/:invoiceID/line-items/:lineItemID", invoiceHandler.RemoveLineItem)
-	r.GET("/invoices/:invoiceID/summary", invoiceHandler.GetSummary)
-	r.POST("/invoices/:invoiceID/finalize", invoiceHandler.FinalizeInvoice)
-	r.DELETE("/invoices/:invoiceID", invoiceHandler.DeleteInvoice)
+	setupRoutes(r, db)
 
 	r.Run(":8080")
+}
+
+func setupRoutes(router *gin.Engine, db *gorm.DB) {
+	// Initialize controllers
+	invoiceController := handlers.NewInvoiceController(db)
+
+	// Invoice routes
+	router.GET("/invoices", invoiceController.GetInvoices)
+	router.GET("/invoices/create", invoiceController.GetInvoiceForm)
+	router.POST("/api/invoices", invoiceController.SaveInvoice)
+
+	// API routes for ajax requests
+	router.GET("/api/items/details", invoiceController.GetItemDetails)
+	router.GET("/api/suppliers/details", invoiceController.GetSupplierDetails)
 }

@@ -18,13 +18,13 @@
                 {{range .LineItems}}
                 <tr>
                     <td>{{.Name}}</td>
-                    <td>${{.Price}}</td>
+                    <td>{{.Price}}</td>
                     <td>{{.Unit}}</td>
                     <td>{{.TaxRate}}%</td>
                     <td>{{.Quantity}}</td>
-                    <td>${{.Subtotal}}</td>
-                    <td>${{.TaxAmount}}</td>
-                    <td>${{.Total}}</td>
+                    <td>{{.Subtotal}}</td>
+                    <td>{{.TaxAmount}}</td>
+                    <td>{{.Total}}</td>
                     <td>
                         <button hx-delete="/invoices/line-items/{{.ID}}" 
                                 hx-target="#lineItemsTableContainer" 

@@ -1,226 +1,202 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
+
 	"todo-item-app/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-// InvoiceHandler manages invoice-related requests
-type InvoiceHandler struct {
+type InvoiceController struct {
 	DB *gorm.DB
 }
 
-// NewInvoiceHandler creates a new invoice handler
-func NewInvoiceHandler(db *gorm.DB) *InvoiceHandler {
-	return &InvoiceHandler{DB: db}
+func NewInvoiceController(db *gorm.DB) *InvoiceController {
+	return &InvoiceController{DB: db}
 }
 
-// GetInvoices renders the list of invoices
-func (h *InvoiceHandler) GetInvoices(c *gin.Context) {
+func (ic *InvoiceController) GetInvoices(c *gin.Context) {
+	fmt.Println("invoices")
 	var invoices []models.Invoice
-	h.DB.Preload("Supplier").Find(&invoices)
-
-	var suppliers []models.Supplier
-	h.DB.Find(&suppliers)
+	ic.DB.Find(&invoices)
+	fmt.Println(invoices)
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"invoices":  invoices,
-		"suppliers": suppliers,
-		"active":    "invoices",
-		"Title":     "Invoices",
-	})
-}
-
-// GetInvoicesPartial renders just the invoice list partial
-func (h *InvoiceHandler) GetInvoicesPartial(c *gin.Context) {
-	var invoices []models.Invoice
-	h.DB.Preload("Supplier").Find(&invoices)
-
-	c.HTML(http.StatusOK, "invoices.html", gin.H{
 		"invoices": invoices,
+		"active":   "invoices",
+		"Title":    "Invoices",
 	})
 }
 
-// CreateInvoice - POST /invoices
-func (h *InvoiceHandler) CreateInvoice(c *gin.Context) {
-	supplierIDStr := c.PostForm("supplierID")
-	supplierID, err := strconv.Atoi(supplierIDStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid supplierID")
+// GetInvoiceForm renders the invoice creation form
+func (ic *InvoiceController) GetInvoiceForm(c *gin.Context) {
+	// Get current company
+	var company models.Company
+	if err := ic.DB.First(&company).Error; err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Company not found",
+		})
 		return
 	}
 
-	invoice := models.Invoice{SupplierID: uint(supplierID), Status: "draft"}
-	if err := h.DB.Create(&invoice).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Failed to create invoice")
-		return
-	}
-
-	// Redirect to the invoice management page
-	c.Redirect(http.StatusFound, "/invoices/"+strconv.Itoa(int(invoice.ID)))
-}
-
-// ShowInvoice - GET /invoices/:invoiceID
-func (h *InvoiceHandler) ShowInvoice(c *gin.Context) {
-	invoiceIDStr := c.Param("invoiceID")
-	invoiceID, err := strconv.Atoi(invoiceIDStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid invoiceID")
-		return
-	}
-
-	var invoice models.Invoice
-	if err := h.DB.First(&invoice, invoiceID).Error; err != nil {
-		c.String(http.StatusNotFound, "Invoice not found")
-		return
-	}
-
+	// Get all items
 	var items []models.Item
-	h.DB.Find(&items)
+	if err := ic.DB.Find(&items).Error; err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Could not load items",
+		})
+		return
+	}
 
-	c.HTML(http.StatusOK, "invoice_content.html", gin.H{
-		"InvoiceID": invoice.ID,
-		"Items":     items,
+	// Get all suppliers
+	var suppliers []models.Supplier
+	if err := ic.DB.Find(&suppliers).Error; err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Could not load suppliers",
+		})
+		return
+	}
+
+	// Format current date
+	currentDate := time.Now().Format("02.01.2006")
+
+	fmt.Println(company)
+	fmt.Println(items)
+	fmt.Println(suppliers)
+
+	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
+		"Company":     company,
+		"Items":       items,
+		"Suppliers":   suppliers,
+		"CurrentDate": currentDate,
 	})
 }
 
-func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
-	invoiceIDStr := c.Param("invoiceID")
-	invoiceID, err := strconv.Atoi(invoiceIDStr)
+// GetItemDetails fetches details for a specific item
+func (ic *InvoiceController) GetItemDetails(c *gin.Context) {
+	itemID, err := strconv.Atoi(c.Query("itemId"))
 	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid invoiceID")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
-
-	var invoice models.Invoice
-	if err := h.DB.First(&invoice, invoiceID).Error; err != nil || invoice.Status != "draft" {
-		c.String(http.StatusNotFound, "Invoice not found or not draft")
-		return
-	}
-
-	itemIDStr := c.PostForm("itemId")
-	quantityStr := c.PostForm("quantity")
-	sellingPriceStr := c.PostForm("sellingPrice")
-
-	itemID, _ := strconv.Atoi(itemIDStr)
-	quantity, _ := strconv.Atoi(quantityStr)
-	sellingPrice, _ := strconv.ParseFloat(sellingPriceStr, 64)
 
 	var item models.Item
-	if err := h.DB.First(&item, itemID).Error; err != nil {
-		c.String(http.StatusBadRequest, "Invalid itemID")
+	if err := ic.DB.First(&item, itemID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 		return
 	}
 
-	subtotal := float64(quantity) * sellingPrice
-	lineItem := models.LineItem{
-		InvoiceID:    uint(invoiceID),
-		ItemID:       uint(itemID),
-		Quantity:     quantity,
-		SellingPrice: sellingPrice,
-		Subtotal:     subtotal,
-	}
-	if err := h.DB.Create(&lineItem).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Failed to add line item")
-		return
-	}
-
-	c.HTML(http.StatusOK, "line_item_row.html", gin.H{
-		"LineItemID":   lineItem.ID,
-		"InvoiceID":    invoiceID,
-		"Name":         item.Name,
-		"Unit":         item.Unit,
-		"Quantity":     quantity,
-		"SellingPrice": sellingPrice,
-		"Subtotal":     subtotal,
-	})
+	// HTMX response is handled by JavaScript in the template
+	c.Status(http.StatusOK)
 }
 
-func (h *InvoiceHandler) RemoveLineItem(c *gin.Context) {
-	invoiceIDStr := c.Param("invoiceID")
-	lineItemIDStr := c.Param("lineItemID")
-
-	invoiceID, _ := strconv.Atoi(invoiceIDStr)
-	lineItemID, _ := strconv.Atoi(lineItemIDStr)
-
-	var invoice models.Invoice
-	if err := h.DB.First(&invoice, invoiceID).Error; err != nil || invoice.Status != "draft" {
-		c.String(http.StatusNotFound, "Invoice not found or not draft")
+// GetSupplierDetails fetches details for a specific supplier
+func (ic *InvoiceController) GetSupplierDetails(c *gin.Context) {
+	supplierID := c.Query("value")
+	if supplierID == "" {
+		c.String(http.StatusOK, "")
 		return
 	}
 
-	if err := h.DB.Delete(&models.LineItem{}, lineItemID).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Failed to remove line item")
+	var supplier models.Supplier
+	if err := ic.DB.First(&supplier, supplierID).Error; err != nil {
+		c.String(http.StatusOK, "Supplier not found")
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.String(http.StatusOK, supplier.Address)
 }
 
-func (h *InvoiceHandler) GetSummary(c *gin.Context) {
-	invoiceIDStr := c.Param("invoiceID")
-	invoiceID, err := strconv.Atoi(invoiceIDStr)
+// SaveInvoice saves a new invoice
+func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
+	_, err := strconv.Atoi(c.PostForm("company_id"))
 	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid invoiceID")
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Invalid company ID",
+		})
 		return
 	}
 
-	var lineItems []models.LineItem
-	h.DB.Where("invoice_id = ?", invoiceID).Find(&lineItems)
-
-	subtotal := 0.0
-	for _, li := range lineItems {
-		subtotal += li.Subtotal
-	}
-	total := subtotal
-
-	c.HTML(http.StatusOK, "invoice_summary.html", gin.H{
-		"InvoiceID": invoiceID,
-		"Subtotal":  subtotal,
-		"Total":     total,
-	})
-}
-
-func (h *InvoiceHandler) FinalizeInvoice(c *gin.Context) {
-	invoiceIDStr := c.Param("invoiceID")
-	invoiceID, err := strconv.Atoi(invoiceIDStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid invoiceID")
+	supplierID, err := strconv.Atoi(c.PostForm("supplier_id"))
+	if err != nil || supplierID == 0 {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Please select a supplier",
+		})
 		return
 	}
 
-	var invoice models.Invoice
-	if err := h.DB.First(&invoice, invoiceID).Error; err != nil || invoice.Status != "draft" {
-		c.String(http.StatusNotFound, "Invoice not found or not draft")
+	// documentType := c.PostForm("document_type")
+	documentNumber := c.PostForm("document_number")
+	if documentNumber == "" {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Please enter a document number",
+		})
 		return
 	}
 
-	if err := h.DB.Model(&invoice).Update("status", "finalized").Error; err != nil {
-		c.String(http.StatusInternalServerError, "Failed to finalize invoice")
+	// Parse items JSON
+	var items []models.InvoiceItem
+	itemsJSON := c.PostForm("items_json")
+	if err := json.Unmarshal([]byte(itemsJSON), &items); err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Invalid items data",
+		})
 		return
 	}
 
-	c.HTML(http.StatusOK, "invoice_finalized.html", gin.H{
-		"InvoiceID": invoiceID,
-	})
-}
-
-func (h *InvoiceHandler) DeleteInvoice(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("invoiceID"))
-	if err != nil || id <= 0 {
-		c.String(http.StatusBadRequest, "Invalid invoice ID")
+	if len(items) == 0 {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Please add at least one item",
+		})
 		return
 	}
 
-	var invoice models.Invoice
-	if err := h.DB.First(&invoice, id).Error; err != nil {
-		c.String(http.StatusNotFound, "Invoice not found")
+	// Here you would save the invoice to your database
+	// For example:
+	invoice := models.Invoice{
+		SupplierID:     uint(supplierID),
+		DocumentNumber: documentNumber,
+		Date:           time.Now(),
+		// Add other fields as needed
+	}
+
+	if err := ic.DB.Create(&invoice).Error; err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Could not save invoice: " + err.Error(),
+		})
 		return
 	}
-	h.DB.Delete(&invoice)
-	c.String(http.StatusOK, "")
+
+	// Save invoice items
+	for _, item := range items {
+		invoiceItem := models.InvoiceItem{
+			InvoiceID:       invoice.ID,
+			ItemID:          item.ItemID,
+			Quantity:        item.Quantity,
+			Price:           item.Price,
+			DependentCosts:  item.DependentCosts,
+			PriceDifference: item.PriceDifference,
+			VatRate:         item.VatRate,
+			Note:            item.Note,
+			// Add other fields as needed
+		}
+
+		if err := ic.DB.Create(&invoiceItem).Error; err != nil {
+			c.HTML(http.StatusOK, "error.tmpl", gin.H{
+				"error": "Could not save invoice item: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	// Success message
+	c.String(http.StatusOK, `<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
+		<strong>Success!</strong> Invoice saved successfully.
+	</div>`)
 }
