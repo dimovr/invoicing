@@ -94,8 +94,8 @@
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
-                        <th class="p-2 text-center">Stopa</th>
-                        <th class="p-2 text-center">Obračunati iznos</th>
+                        <th class="p-1 text-center">Stopa</th>
+                        <th class="p-3 text-center">Obračunati iznos</th>
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
@@ -110,8 +110,8 @@
                         <th class="p-2">7</th>
                         <th class="p-2">8</th>
                         <th class="p-2">9</th>
-                        <th class="p-2">10</th>
-                        <th class="p-2">11</th>
+                        <th class="p-1">10</th>
+                        <th class="p-3">11</th>
                         <th class="p-2">12</th>
                         <th class="p-2">13</th>
                         <th class="p-2">14</th>
@@ -238,7 +238,7 @@
                 document.getElementById('document-number-input').value = this.value;
             });
         });
-        
+
         function addNewRow() {
             const tbody = document.getElementById('invoice-items');
             const template = document.getElementById('item-row-template');
@@ -255,7 +255,7 @@
             
             tbody.appendChild(newRow);
         }
-        
+
         function addRowEventListeners(row) {
             // Item selector change
             const itemSelector = row.querySelector('.item-selector');
@@ -270,8 +270,12 @@
                     
                     // Populate fields
                     row.querySelector('.item-unit').value = unit;
-                    row.querySelector('.item-price').value = price;
                     row.querySelector('.item-vat-rate').value = taxRate;
+                    
+                    // Set the unit price (column 13) directly from item.Price
+                    row.querySelector('.item-unit-price').textContent = parseFloat(price).toFixed(2);
+                    
+                    // Column 5 (price) is left for user input and not automatically populated
                     
                     // Calculate row
                     calculateRow(row);
@@ -288,7 +292,7 @@
                 calculateTotals();
             });
             
-            // Price change
+            // Price change (column 5)
             row.querySelector('.item-price').addEventListener('input', function() {
                 calculateRow(row);
                 calculateTotals();
@@ -306,7 +310,7 @@
                 calculateTotals();
             });
         }
-        
+
         function resetRow(row) {
             // Reset all input fields
             row.querySelector('.item-unit').value = '';
@@ -327,7 +331,7 @@
             // Update totals
             calculateTotals();
         }
-        
+
         function calculateRow(row) {
             // Get values from the row
             const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
@@ -337,20 +341,21 @@
             const vatRate = parseFloat(row.querySelector('.item-vat-rate').value) || 0;
             
             // Calculate values
-            const value = quantity * price;
-            const valueWithoutVat = value + dependentCosts + priceDifference;
-            const vatAmount = valueWithoutVat * (vatRate / 100);
-            const valueWithVat = valueWithoutVat + vatAmount;
-            const unitPrice = quantity > 0 ? valueWithVat / quantity : 0;
+            const value = quantity * price; // Column 6: Value = Quantity * Price per unit
+            const valueWithoutVat = value + dependentCosts + priceDifference; // Column 9: Value without VAT
+            const vatAmount = valueWithoutVat * (vatRate / 100); // Column 11: VAT Amount
+            const valueWithVat = valueWithoutVat + vatAmount; // Column 12: Value with VAT
             
-            // Update the row with calculated values
+            // Update the calculated fields
             row.querySelector('.item-value').textContent = value.toFixed(2);
             row.querySelector('.item-value-without-vat').textContent = valueWithoutVat.toFixed(2);
             row.querySelector('.item-vat-amount').textContent = vatAmount.toFixed(2);
             row.querySelector('.item-value-with-vat').textContent = valueWithVat.toFixed(2);
-            row.querySelector('.item-unit-price').textContent = unitPrice.toFixed(2);
+            
+            // Note: We do NOT update item-unit-price here as it's directly from the database
+            // and doesn't change based on other calculations
         }
-        
+
         function calculateTotals() {
             let totalValue = 0;
             let totalVatAmount = 0;
@@ -368,7 +373,7 @@
             document.getElementById('total-vat-amount').textContent = totalVatAmount.toFixed(2);
             document.getElementById('total-with-vat').textContent = totalWithVat.toFixed(2);
         }
-        
+
         function prepareFormData() {
             // Prepare document info
             document.getElementById('document-type-input').value = document.getElementById('document-type').value;
