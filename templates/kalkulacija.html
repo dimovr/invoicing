@@ -45,10 +45,10 @@
             <div class="text-center">
                 <h1 class="text-xl font-bold uppercase">Kalkulacija Prodajne Cene Broj</h1>
                 <p class="text-sm mb-4">isporučilac dobara 
-                    <select id="supplier-select" class="border rounded p-1" hx-get="/api/suppliers/details" hx-trigger="change" hx-target="#supplier-details" hx-swap="innerHTML">
+                    <select id="supplier-select" class="border rounded p-1" hx-trigger="change" hx-target="#supplier-details" hx-swap="innerHTML">
                         <option value="">Izaberite dobavljača</option>
                         {{ range .Suppliers }}
-                        <option value="{{ .ID }}">{{ .Name }}</option>
+                        <option value="{{ .ID }}">{{ .Name }} - {{ .Code }} / {{ .Address }}</option>
                         {{ end }}
                     </select>
                     <span id="supplier-details"></span>

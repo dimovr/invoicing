@@ -96,23 +96,6 @@ func (ic *InvoiceController) GetItemDetails(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// GetSupplierDetails fetches details for a specific supplier
-func (ic *InvoiceController) GetSupplierDetails(c *gin.Context) {
-	supplierID := c.Query("value")
-	if supplierID == "" {
-		c.String(http.StatusOK, "")
-		return
-	}
-
-	var supplier models.Supplier
-	if err := ic.DB.First(&supplier, supplierID).Error; err != nil {
-		c.String(http.StatusOK, "Supplier not found")
-		return
-	}
-
-	c.String(http.StatusOK, supplier.Address)
-}
-
 // SaveInvoice saves a new invoice
 func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 	_, err := strconv.Atoi(c.PostForm("company_id"))
