@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Creation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+        
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 bg-white shadow-md my-8">
+        <!-- Header Section -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <p class="text-sm">PIB: <span id="pib">123</span></p>
+                <p class="text-sm">Šifra poreskog obveznika: <span id="tax-code">abc</span></p>
+                <p class="text-sm">Šifra delatnosti: <span id="activity-code">xyz</span></p>
+                <p class="text-sm">Obveznik: <span id="taxpayer">MAJAMI</span></p>
+                <p class="text-sm">Firma - radnja: <span id="company">Miroslav Simov</span></p>
+                <p class="text-sm">Sedište: <span id="headquarters">Ljubata</span></p>
+            </div>
+            <div class="text-center">
+                <h1 class="text-xl font-bold uppercase">Kalkulacija Prodajne Cene Broj</h1>
+                <p class="text-sm mb-4">isporučilac dobara <span id="supplier-name">Naziv isporučioca</span></p>
+                <div class="flex justify-center items-center gap-2 mb-4">
+                    <p class="text-sm">po dokumentu</p>
+                    <span class="px-2 py-1 bg-gray-200 rounded">faktura</span>
+                    <p class="text-sm">broj <span id="invoice-number">Broj</span></p>
+                </div>
+                <p class="text-sm">od <span id="invoice-date">15.01.2025</span> godine</p>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="overflow-x-auto mb-6">
+            <table class="min-w-full table-bordered">
+                <thead class="bg-gray-100">
+                    <tr class="text-xs">
+                        <th class="p-2 text-center">Red. broj</th>
+                        <th class="p-2 text-center">Naziv robe</th>
+                        <th class="p-2 text-center">Jedinica mere</th>
+                        <th colspan="3" class="p-2 text-center">Po fakturi dobavljača</th>
+                        <th class="p-2 text-center">Zavisni troškovi</th>
+                        <th class="p-2 text-center">Razlika u ceni</th>
+                        <th class="p-2 text-center">Prodajna vrednost robe bez PDV (6 + 7 + 8)</th>
+                        <th colspan="2" class="p-2 text-center">PDV</th>
+                        <th class="p-2 text-center">Prodajna vrednost robe sa obračunatim PDV (9 + 11)</th>
+                        <th class="p-2 text-center">Prodajna cena po jedinici mere (12 : 4)</th>
+                        <th class="p-2 text-center">Napomena</th>
+                    </tr>
+                    <tr class="text-xs bg-gray-100">
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center">Količina</th>
+                        <th class="p-2 text-center">Cena po jedinici mere</th>
+                        <th class="p-2 text-center">Vrednost robe (4 × 5)</th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center">Stopa</th>
+                        <th class="p-2 text-center">Obračunati iznos</th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center"></th>
+                        <th class="p-2 text-center"></th>
+                    </tr>
+                    <tr class="text-xs text-center bg-gray-100">
+                        <th class="p-2">1</th>
+                        <th class="p-2">2</th>
+                        <th class="p-2">3</th>
+                        <th class="p-2">4</th>
+                        <th class="p-2">5</th>
+                        <th class="p-2">6</th>
+                        <th class="p-2">7</th>
+                        <th class="p-2">8</th>
+                        <th class="p-2">9</th>
+                        <th class="p-2">10</th>
+                        <th class="p-2">11</th>
+                        <th class="p-2">12</th>
+                        <th class="p-2">13</th>
+                        <th class="p-2">14</th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-items">
+                    <tr>
+                        <td class="p-2 text-center">1</td>
+                        <td class="p-2">
+                            <input type="text" class="w-full border-none item-name" value="Cokolada">
+                        </td>
+                        <td class="p-2">
+                            <input type="text" class="w-full border-none item-unit" value="kg">
+                        </td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-quantity" value="1">
+                        </td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-price" value="100.00">
+                        </td>
+                        <td class="p-2 text-right item-value">100.00</td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-dependent-costs" value="0.00">
+                        </td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-price-difference" value="0.00">
+                        </td>
+                        <td class="p-2 text-right item-value-without-vat">100.00</td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-vat-rate" value="20.00">
+                        </td>
+                        <td class="p-2 text-right item-vat-amount">100.00</td>
+                        <td class="p-2 text-right item-value-with-vat"></td>
+                        <td class="p-2 text-right item-unit-price"></td>
+                        <td class="p-2">
+                            <input type="text" class="w-full border-none item-note">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 text-center">2</td>
+                        <td class="p-2">
+                            <input type="text" class="w-full border-none item-name" value="Pivo">
+                        </td>
+                        <td class="p-2">
+                            <input type="text" class="w-full border-none item-unit" value="litar">
+                        </td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-quantity" value="5">
+                        </td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-price" value="50.00">
+                        </td>
+                        <td class="p-2 text-right item-value">250.00</td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-dependent-costs" value="0.00">
+                        </td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-price-difference" value="0.00">
+                        </td>
+                        <td class="p-2 text-right item-value-without-vat">250.00</td>
+                        <td class="p-2">
+                            <input type="number" class="w-full border-none text-right item-vat-rate" value="10.00">
+                        </td>
+                        <td class="p-2 text-right item-vat-amount">250.00</td>
+                        <td class="p-2 text-right item-value-with-vat"></td>
+                        <td class="p-2 text-right item-unit-price"></td>
+                        <td class="p-2">
+                            <input type="text" class="w-full border-none item-note">
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" class="p-2 text-right font-bold">Total:</td>
+                        <td class="p-2 text-right font-bold" id="total-value">350.00</td>
+                        <td colspan="4" class="p-2"></td>
+                        <td class="p-2 text-right font-bold" id="total-vat">395.00</td>
+                        <td colspan="3" class="p-2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm">Datum: <span id="document-date">15.01.2025</span> godine</p>
+                <p class="text-sm">Sastavio: <span id="prepared-by">Miroslav Simov</span></p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm">Odgovorno lice: <span id="responsible-person">Miroslav Simov</span></p>
+            </div>
+        </div>
+
+        <!-- Button Section (No Print) -->
+        <div class="flex justify-between mt-8 no-print">
+            <button id="add-row-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Row</button>
+            <div>
+                <button id="save-btn" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
+                <button id="print-btn" class="bg-gray-500 text-white px-4 py-2 rounded">Print</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize calculations for existing rows
+            calculateAll();
+            
+            // Add row button functionality
+            document.getElementById('add-row-btn').addEventListener('click', function() {
+                addNewRow();
+            });
+            
+            // Print button functionality
+            document.getElementById('print-btn').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Save button functionality
+            document.getElementById('save-btn').addEventListener('click', function() {
+                saveInvoice();
+            });
+            
+            // Add event listeners to all input fields
+            attachEventListeners();
+        });
+        
+        function attachEventListeners() {
+            // Listen for changes on all input fields
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', function() {
+                    calculateRow(this.closest('tr'));
+                    calculateTotals();
+                });
+            });
+        }
+        
+        function calculateRow(row) {
+            // Get values from the row
+            const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const dependentCosts = parseFloat(row.querySelector('.item-dependent-costs').value) || 0;
+            const priceDifference = parseFloat(row.querySelector('.item-price-difference').value) || 0;
+            const vatRate = parseFloat(row.querySelector('.item-vat-rate').value) || 0;
+            
+            // Calculate values
+            const value = quantity * price;
+            const valueWithoutVat = value + dependentCosts + priceDifference;
+            const vatAmount = valueWithoutVat * (vatRate / 100);
+            const valueWithVat = valueWithoutVat + vatAmount;
+            const unitPrice = quantity > 0 ? valueWithVat / quantity : 0;
+            
+            // Update the row with calculated values
+            row.querySelector('.item-value').textContent = value.toFixed(2);
+            row.querySelector('.item-value-without-vat').textContent = valueWithoutVat.toFixed(2);
+            row.querySelector('.item-vat-amount').textContent = vatAmount.toFixed(2);
+            row.querySelector('.item-value-with-vat').textContent = valueWithVat.toFixed(2);
+            row.querySelector('.item-unit-price').textContent = unitPrice.toFixed(2);
+        }
+        
+        function calculateTotals() {
+            let totalValue = 0;
+            let totalVat = 0;
+            
+            // Sum up all row values
+            document.querySelectorAll('#invoice-items tr').forEach(row => {
+                totalValue += parseFloat(row.querySelector('.item-value').textContent) || 0;
+                totalVat += parseFloat(row.querySelector('.item-vat-amount').textContent) || 0;
+            });
+            
+            // Update totals
+            document.getElementById('total-value').textContent = totalValue.toFixed(2);
+            document.getElementById('total-vat').textContent = (totalValue + totalVat).toFixed(2);
+        }
+        
+        function calculateAll() {
+            document.querySelectorAll('#invoice-items tr').forEach(row => {
+                calculateRow(row);
+            });
+            calculateTotals();
+        }
+        
+        function addNewRow() {
+            const tbody = document.getElementById('invoice-items');
+            const newRowNumber = tbody.children.length + 1;
+            
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="p-2 text-center">${newRowNumber}</td>
+                <td class="p-2">
+                    <input type="text" class="w-full border-none item-name">
+                </td>
+                <td class="p-2">
+                    <input type="text" class="w-full border-none item-unit">
+                </td>
+                <td class="p-2">
+                    <input type="number" class="w-full border-none text-right item-quantity" value="0">
+                </td>
+                <td class="p-2">
+                    <input type="number" class="w-full border-none text-right item-price" value="0.00">
+                </td>
+                <td class="p-2 text-right item-value">0.00</td>
+                <td class="p-2">
+                    <input type="number" class="w-full border-none text-right item-dependent-costs" value="0.00">
+                </td>
+                <td class="p-2">
+                    <input type="number" class="w-full border-none text-right item-price-difference" value="0.00">
+                </td>
+                <td class="p-2 text-right item-value-without-vat">0.00</td>
+                <td class="p-2">
+                    <input type="number" class="w-full border-none text-right item-vat-rate" value="20.00">
+                </td>
+                <td class="p-2 text-right item-vat-amount">0.00</td>
+                <td class="p-2 text-right item-value-with-vat">0.00</td>
+                <td class="p-2 text-right item-unit-price">0.00</td>
+                <td class="p-2">
+                    <input type="text" class="w-full border-none item-note">
+                </td>
+            `;
+            
+            tbody.appendChild(newRow);
+            attachEventListeners();
+        }
+        
+        function saveInvoice() {
+            // Gather all invoice data
+            const invoiceData = {
+                company: {
+                    pib: document.getElementById('pib').textContent,
+                    taxCode: document.getElementById('tax-code').textContent,
+                    activityCode: document.getElementById('activity-code').textContent,
+                    taxpayer: document.getElementById('taxpayer').textContent,
+                    companyName: document.getElementById('company').textContent,
+                    headquarters: document.getElementById('headquarters').textContent
+                },
+                invoice: {
+                    supplier: document.getElementById('supplier-name').textContent,
+                    number: document.getElementById('invoice-number').textContent,
+                    date: document.getElementById('invoice-date').textContent,
+                    preparedBy: document.getElementById('prepared-by').textContent,
+                    responsiblePerson: document.getElementById('responsible-person').textContent
+                },
+                items: []
+            };
+            
+            // Gather items data
+            document.querySelectorAll('#invoice-items tr').forEach(row => {
+                invoiceData.items.push({
+                    name: row.querySelector('.item-name').value,
+                    unit: row.querySelector('.item-unit').value,
+                    quantity: parseFloat(row.querySelector('.item-quantity').value) || 0,
+                    price: parseFloat(row.querySelector('.item-price').value) || 0,
+                    value: parseFloat(row.querySelector('.item-value').textContent) || 0,
+                    dependentCosts: parseFloat(row.querySelector('.item-dependent-costs').value) || 0,
+                    priceDifference: parseFloat(row.querySelector('.item-price-difference').value) || 0,
+                    valueWithoutVat: parseFloat(row.querySelector('.item-value-without-vat').textContent) || 0,
+                    vatRate: parseFloat(row.querySelector('.item-vat-rate').value) || 0,
+                    vatAmount: parseFloat(row.querySelector('.item-vat-amount').textContent) || 0,
+                    valueWithVat: parseFloat(row.querySelector('.item-value-with-vat').textContent) || 0,
+                    unitPrice: parseFloat(row.querySelector('.item-unit-price').textContent) || 0,
+                    note: row.querySelector('.item-note').value
+                });
+            });
+            
+            // Send data to server using htmx
+            htmx.ajax('POST', '/api/invoices', {
+                target: '#response-message',
+                swap: 'innerHTML',
+                values: invoiceData
+            });
+        }
+    </script>
+</body>
+</html>
