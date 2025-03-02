@@ -86,6 +86,7 @@ func (h *SupplierHandler) UpdateSupplier(c *gin.Context) {
 
 	// Update fields while preserving ID
 	supplier.Name = updatedSupplier.Name
+	supplier.Code = updatedSupplier.Code
 	supplier.Address = updatedSupplier.Address
 
 	h.DB.Save(&supplier)

@@ -36,6 +36,7 @@ type Supplier struct {
 	gorm.Model
 	ID      uint   `gorm:"primaryKey" json:"ID"`
 	Name    string `json:"name"`
+	Code    string `json:"code"`
 	Address string `json:"address"`
 }
 

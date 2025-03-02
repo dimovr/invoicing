@@ -1,6 +1,7 @@
 <form hx-put="/suppliers/{{.supplier.ID}}" hx-target="#supplier-{{.supplier.ID}}" hx-swap="outerHTML">
     <div class="input-group">
         <input type="text" name="Name" class="form-control" value="{{.supplier.Name}}" required>
+        <input type="text" name="Code" class="form-control" value="{{.supplier.Code}}" required>
         <input type="text" name="Address" class="form-control" value="{{.supplier.Address}}" required>
         <button type="submit" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
             <i class="bi bi-check"></i>

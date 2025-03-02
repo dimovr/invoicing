@@ -126,7 +126,7 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 	supplierID, err := strconv.Atoi(c.PostForm("supplier_id"))
 	if err != nil || supplierID == 0 {
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Please select a supplier",
+			"error": "Izaberite dobavljača",
 		})
 		return
 	}
@@ -135,7 +135,7 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 	documentNumber := c.PostForm("document_number")
 	if documentNumber == "" {
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Please enter a document number",
+			"error": "Unesite broj dokumenta",
 		})
 		return
 	}
@@ -144,15 +144,16 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 	var items []models.InvoiceItem
 	itemsJSON := c.PostForm("items_json")
 	if err := json.Unmarshal([]byte(itemsJSON), &items); err != nil {
+		fmt.Println("Greska tokom obrade artikala:", err)
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Invalid items data",
+			"error": "Greska tokom obrade artikala",
 		})
 		return
 	}
 
 	if len(items) == 0 {
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Please add at least one item",
+			"error": "Morate izabrati bar jedan artikal",
 		})
 		return
 	}

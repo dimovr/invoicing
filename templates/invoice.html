@@ -6,7 +6,7 @@
     <td>${{printf "%.2f" .TaxAmount}}</td>
     <td>${{printf "%.2f" .Total}}</td>
     <td class="text-end">
-        <button class="btn py-1 px-2 text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded me-2"
+        <button class="btn py-1 px-2 text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded mr-2"
                 hx-get="/invoices/{{.ID}}"
                 hx-target="#invoice-view">
             <i class="bi bi-eye"></i>
