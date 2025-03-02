@@ -12,14 +12,14 @@
             <input type="hidden" name="invoiceID" value="{{.InvoiceID}}">
 
             <div class="mb-3">
-                <div class="input-group" hx-post="/invoices/{{.InvoiceID}}/line-items" hx-include="#itemId, #itemCount, #sellingPrice">
+                <div class="input-group" hx-post="/invoices/{{.InvoiceID}}/line-items" hx-include="#itemId, #itemQuantity, #sellingPrice">
                     <select id="itemId" name="itemId" class="form-select" required>
                         <option value="">Select an item</option>
                         {{range .Items}}
                             <option value="{{.ID}}" data-default-price="{{.Price}}">{{.Name}} - {{.Price}} per {{.Unit}}</option>
                         {{end}}
                     </select>
-                    <input type="number" id="itemCount" name="count" class="form-control" min="1" value="1" required>
+                    <input type="number" id="itemQuantity" name="quantity" class="form-control" min="1" value="1" required>
                     <input type="number" id="sellingPrice" name="sellingPrice" class="form-control" step="0.01" min="0" required>
                     <button type="submit" class="btn btn-secondary">Add</button>
                 </div>
@@ -31,7 +31,7 @@
                         <th>Name</th>
                         <th>Price</th>
                         <th>Unit</th>
-                        <th>Count</th>
+                        <th>Quantity</th>
                         <th>Subtotal</th>
                         <th>Actions</th>
                     </tr>
@@ -39,7 +39,7 @@
                 <tbody></tbody>
             </table>
 
-            <div id="invoiceSummary" hx-get="/invoices/{{.InvoiceID}}/summary" hx-trigger="load, every 2s from:body"></div>
+            <!-- <div id="invoiceSummary" hx-get="/invoices/{{.InvoiceID}}/summary" hx-trigger="load, every 2s from:body"></div> -->
 
             <button hx-post="/invoices/{{.InvoiceID}}/finalize" hx-target="body" hx-swap="outerHTML" class="btn btn-primary mt-2">Finalize Invoice</button>
         </form>

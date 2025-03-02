@@ -1,11 +1,9 @@
-<div class="card-body">
-    <form id="supplierCreateForm" hx-post="/suppliers" hx-target="#suppliersTable tbody" hx-swap="beforeend">
-        <div class="input-group">
-            <input type="text" name="Name" class="form-control" placeholder="Supplier name" required>
-            <input type="text" name="Address" class="form-control" placeholder="Address" required>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-plus"></i>
-            </button>
-        </div>
-    </form>
-</div>
+<form id="supplierCreateForm" hx-post="/suppliers" hx-target="#suppliersTable tbody" hx-swap="beforeend">
+    <div class="input-group">
+        <input type="text" name="Name" class="form-control" placeholder="Supplier name" required>
+        <input type="text" name="Address" class="form-control" placeholder="Address" required>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus"></i>
+        </button>
+    </div>
+</form>

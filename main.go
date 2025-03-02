@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Invoice{}, &models.InvoiceLineItem{}, &models.Supplier{})
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Invoice{}, &models.LineItem{}, &models.Supplier{})
 
 	r := gin.Default()
 	// Define custom template functions
@@ -57,6 +57,7 @@ func main() {
 	// Add invoice routes
 	invoiceHandler := handlers.NewInvoiceHandler(db)
 	r.GET("/invoices", invoiceHandler.GetInvoices)
+	r.GET("/invoices/:invoiceID", invoiceHandler.ShowInvoice)
 	r.POST("/invoices", invoiceHandler.CreateInvoice)
 	r.POST("/invoices/:invoiceID/line-items", invoiceHandler.AddLineItem)
 	r.DELETE("/invoices/:invoiceID/line-items/:lineItemID", invoiceHandler.RemoveLineItem)

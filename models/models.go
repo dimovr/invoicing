@@ -39,17 +39,17 @@ type Supplier struct {
 
 type Invoice struct {
 	gorm.Model
-	ID         uint              `gorm:"primaryKey" json:"id"`
-	SupplierID uint              `gorm:"not null" json:"supplier_id"`
-	Supplier   Supplier          `gorm:"foreignKey:SupplierID" json:"supplier"`
-	LineItems  []InvoiceLineItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
-	Subtotal   float64           `json:"subtotal"`   // Calculated: Sum of item prices * quantitys
-	TaxAmount  float64           `json:"tax_amount"` // Calculated: Sum of (item price * quantity * tax_rate)
-	Total      float64           `json:"total"`      // Calculated: Subtotal + TaxAmount
-	Status     string            `gorm:"default: draft" json:"status"`
+	ID         uint       `gorm:"primaryKey" json:"id"`
+	SupplierID uint       `gorm:"not null" json:"supplier_id"`
+	Supplier   Supplier   `gorm:"foreignKey:SupplierID" json:"supplier"`
+	LineItems  []LineItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
+	Subtotal   float64    `json:"subtotal"`   // Calculated: Sum of item prices * quantitys
+	TaxAmount  float64    `json:"tax_amount"` // Calculated: Sum of (item price * quantity * tax_rate)
+	Total      float64    `json:"total"`      // Calculated: Subtotal + TaxAmount
+	Status     string     `gorm:"default: draft" json:"status"`
 }
 
-type InvoiceLineItem struct {
+type LineItem struct {
 	gorm.Model
 	// ID      uint    `gorm:"primaryKey" json:"ID"`
 	InvoiceID    uint    `gorm:"not null" json:"invoice_id"`

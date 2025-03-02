@@ -60,15 +60,34 @@ func (h *InvoiceHandler) CreateInvoice(c *gin.Context) {
 		return
 	}
 
+	// Redirect to the invoice management page
+	c.Redirect(http.StatusFound, "/invoices/"+strconv.Itoa(int(invoice.ID)))
+}
+
+// ShowInvoice - GET /invoices/:invoiceID
+func (h *InvoiceHandler) ShowInvoice(c *gin.Context) {
+	invoiceIDStr := c.Param("invoiceID")
+	invoiceID, err := strconv.Atoi(invoiceIDStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid invoiceID")
+		return
+	}
+
+	var invoice models.Invoice
+	if err := h.DB.First(&invoice, invoiceID).Error; err != nil {
+		c.String(http.StatusNotFound, "Invoice not found")
+		return
+	}
+
 	var items []models.Item
 	h.DB.Find(&items)
+
 	c.HTML(http.StatusOK, "invoice_content.html", gin.H{
 		"InvoiceID": invoice.ID,
 		"Items":     items,
 	})
 }
 
-// AddLineItem - POST /invoices/:invoiceID/line-items
 func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
 	invoiceIDStr := c.Param("invoiceID")
 	invoiceID, err := strconv.Atoi(invoiceIDStr)
@@ -98,7 +117,7 @@ func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
 	}
 
 	subtotal := float64(quantity) * sellingPrice
-	lineItem := models.InvoiceLineItem{
+	lineItem := models.LineItem{
 		InvoiceID:    uint(invoiceID),
 		ItemID:       uint(itemID),
 		Quantity:     quantity,
@@ -121,7 +140,6 @@ func (h *InvoiceHandler) AddLineItem(c *gin.Context) {
 	})
 }
 
-// RemoveLineItem - DELETE /invoices/:invoiceID/line-items/:lineItemID
 func (h *InvoiceHandler) RemoveLineItem(c *gin.Context) {
 	invoiceIDStr := c.Param("invoiceID")
 	lineItemIDStr := c.Param("lineItemID")
@@ -135,7 +153,7 @@ func (h *InvoiceHandler) RemoveLineItem(c *gin.Context) {
 		return
 	}
 
-	if err := h.DB.Delete(&models.InvoiceLineItem{}, lineItemID).Error; err != nil {
+	if err := h.DB.Delete(&models.LineItem{}, lineItemID).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to remove line item")
 		return
 	}
@@ -143,7 +161,6 @@ func (h *InvoiceHandler) RemoveLineItem(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// GetSummary - GET /invoices/:invoiceID/summary
 func (h *InvoiceHandler) GetSummary(c *gin.Context) {
 	invoiceIDStr := c.Param("invoiceID")
 	invoiceID, err := strconv.Atoi(invoiceIDStr)
@@ -152,14 +169,14 @@ func (h *InvoiceHandler) GetSummary(c *gin.Context) {
 		return
 	}
 
-	var lineItems []models.InvoiceLineItem
+	var lineItems []models.LineItem
 	h.DB.Where("invoice_id = ?", invoiceID).Find(&lineItems)
 
 	subtotal := 0.0
 	for _, li := range lineItems {
 		subtotal += li.Subtotal
 	}
-	total := subtotal // Add tax logic if needed
+	total := subtotal
 
 	c.HTML(http.StatusOK, "invoice_summary.html", gin.H{
 		"InvoiceID": invoiceID,
@@ -168,7 +185,6 @@ func (h *InvoiceHandler) GetSummary(c *gin.Context) {
 	})
 }
 
-// FinalizeInvoice - POST /invoices/:invoiceID/finalize
 func (h *InvoiceHandler) FinalizeInvoice(c *gin.Context) {
 	invoiceIDStr := c.Param("invoiceID")
 	invoiceID, err := strconv.Atoi(invoiceIDStr)
@@ -194,10 +210,15 @@ func (h *InvoiceHandler) FinalizeInvoice(c *gin.Context) {
 }
 
 func (h *InvoiceHandler) DeleteInvoice(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("invoiceID"))
+	id, err := strconv.Atoi(c.Param("invoiceID"))
+	if err != nil || id <= 0 {
+		c.String(http.StatusBadRequest, "Invalid invoice ID")
+		return
+	}
+
 	var invoice models.Invoice
 	if err := h.DB.First(&invoice, id).Error; err != nil {
-		c.String(http.StatusNotFound, "Not found")
+		c.String(http.StatusNotFound, "Invoice not found")
 		return
 	}
 	h.DB.Delete(&invoice)
