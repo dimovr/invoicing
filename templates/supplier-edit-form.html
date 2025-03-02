@@ -2,10 +2,10 @@
     <div class="input-group">
         <input type="text" name="Name" class="form-control" value="{{.supplier.Name}}" required>
         <input type="text" name="Address" class="form-control" value="{{.supplier.Address}}" required>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
             <i class="bi bi-check"></i>
         </button>
-        <button type="button" class="btn btn-secondary" 
+        <button type="button" class="btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-2 rounded" 
                 hx-get="/suppliers/form"
                 hx-target="#supplierForm"
                 hx-swap="innerHTML">
