@@ -45,10 +45,10 @@
             <div class="text-center">
                 <h1 class="text-xl font-bold uppercase">Kalkulacija Prodajne Cene Broj</h1>
                 <p class="text-sm mb-4">isporučilac dobara 
-                    <select id="supplier-select" class="border rounded p-1" hx-trigger="change" hx-target="#supplier-details" hx-swap="innerHTML">
+                    <select id="supplier-select" class="border rounded p-1" hx-get="/api/suppliers/details" hx-trigger="change" hx-target="#supplier-details" hx-swap="innerHTML">
                         <option value="">Izaberite dobavljača</option>
                         {{ range .Suppliers }}
-                        <option value="{{ .ID }}">{{ .Name }} - {{ .Code }} / {{ .Address }}</option>
+                        <option value="{{ .ID }}">{{ .Name }}</option>
                         {{ end }}
                     </select>
                     <span id="supplier-details"></span>
@@ -94,8 +94,8 @@
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
-                        <th class="p-1 text-center">Stopa</th>
-                        <th class="p-3 text-center">Obračunati iznos</th>
+                        <th class="p-2 text-center">Stopa</th>
+                        <th class="p-2 text-center">Obračunati iznos</th>
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
                         <th class="p-2 text-center"></th>
@@ -110,8 +110,8 @@
                         <th class="p-2">7</th>
                         <th class="p-2">8</th>
                         <th class="p-2">9</th>
-                        <th class="p-1">10</th>
-                        <th class="p-3">11</th>
+                        <th class="p-2">10</th>
+                        <th class="p-2">11</th>
                         <th class="p-2">12</th>
                         <th class="p-2">13</th>
                         <th class="p-2">14</th>
@@ -132,39 +132,40 @@
                             <input type="text" class="w-full border-none item-unit" readonly>
                         </td>
                         <td class="p-2">
-                            <input type="number" class="w-full border item-quantity" value="1" min="1">
+                            <input type="number" class="w-full border item-quantity" value="1" min="1" step="1">
                         </td>
                         <td class="p-2">
-                            <input type="number" step="0.01" class="w-full border item-price" value="0.00">
+                            <input type="number" step="0.01" class="w-full border item-supplier-price" value="0.00">
                         </td>
-                        <td class="p-2 text-right item-value">0.00</td>
-                        <td class="p-2">
-                            <input type="number" step="0.01" class="w-full border item-dependent-costs" value="0.00">
+                        <td class="p-2 text-right item-supplier-value">0.00</td>
+                        <td class="p-2 text-center">
+                            <!-- Empty as requested -->
                         </td>
-                        <td class="p-2">
-                            <input type="number" step="0.01" class="w-full border item-price-difference" value="0.00">
+                        <td class="p-2 text-right item-price-difference">0.00</td>
+                        <td class="p-2 text-center">
+                            <!-- Empty as requested -->
                         </td>
-                        <td class="p-2 text-right item-value-without-vat">0.00</td>
-                        <td class="p-2">
-                            <input type="number" step="0.01" class="w-full border-none item-vat-rate" readonly>
+                        <td class="p-2 text-center">
+                            <!-- Empty as requested -->
                         </td>
-                        <td class="p-2 text-right item-vat-amount">0.00</td>
-                        <td class="p-2 text-right item-value-with-vat">0.00</td>
+                        <td class="p-2 text-center">
+                            <!-- Empty as requested -->
+                        </td>
+                        <td class="p-2 text-right item-total-price">0.00</td>
                         <td class="p-2 text-right item-unit-price">0.00</td>
                         <td class="p-2">
                             <input type="text" class="w-full border item-note">
                         </td>
+                        <!-- Hidden field to store the original price -->
+                        <input type="hidden" class="item-original-price">
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <!-- <td colspan="5" class="p-2 text-right font-bold">Total:</td> -->
-                        <td colspan="5" class="p-2 text-right font-bold"></td>
-                        <td class="p-2 text-right font-bold" id="total-value">0.00</td>
-                        <td colspan="3" class="p-2"></td>
-                        <td colspan="1" class="p-2"></td>
-                        <td class="p-2 text-right font-bold" id="total-vat-amount">0.00</td>
-                        <td class="p-2 text-right font-bold" id="total-with-vat">0.00</td>
+                        <td colspan="5" class="p-2 text-right font-bold">Total:</td>
+                        <td class="p-2 text-right font-bold" id="total-supplier-value">0.00</td>
+                        <td colspan="5" class="p-2"></td>
+                        <td class="p-2 text-right font-bold" id="total-price">0.00</td>
                         <td colspan="2" class="p-2"></td>
                     </tr>
                 </tfoot>
@@ -238,7 +239,7 @@
                 document.getElementById('document-number-input').value = this.value;
             });
         });
-
+        
         function addNewRow() {
             const tbody = document.getElementById('invoice-items');
             const template = document.getElementById('item-row-template');
@@ -255,7 +256,7 @@
             
             tbody.appendChild(newRow);
         }
-
+        
         function addRowEventListeners(row) {
             // Item selector change
             const itemSelector = row.querySelector('.item-selector');
@@ -266,16 +267,11 @@
                     // Get data from selected option
                     const price = selectedOption.getAttribute('data-price') || '0.00';
                     const unit = selectedOption.getAttribute('data-unit') || '';
-                    const taxRate = selectedOption.getAttribute('data-tax-rate') || '0';
                     
                     // Populate fields
                     row.querySelector('.item-unit').value = unit;
-                    row.querySelector('.item-vat-rate').value = taxRate;
-                    
-                    // Set the unit price (column 13) directly from item.Price
-                    row.querySelector('.item-unit-price').textContent = parseFloat(price).toFixed(2);
-                    
-                    // Column 5 (price) is left for user input and not automatically populated
+                    row.querySelector('.item-original-price').value = price;
+                    row.querySelector('.item-unit-price').textContent = price;
                     
                     // Calculate row
                     calculateRow(row);
@@ -292,88 +288,68 @@
                 calculateTotals();
             });
             
-            // Price change (column 5)
-            row.querySelector('.item-price').addEventListener('input', function() {
-                calculateRow(row);
-                calculateTotals();
-            });
-            
-            // Dependent costs change
-            row.querySelector('.item-dependent-costs').addEventListener('input', function() {
-                calculateRow(row);
-                calculateTotals();
-            });
-            
-            // Price difference change
-            row.querySelector('.item-price-difference').addEventListener('input', function() {
+            // Supplier price change
+            row.querySelector('.item-supplier-price').addEventListener('input', function() {
                 calculateRow(row);
                 calculateTotals();
             });
         }
-
+        
         function resetRow(row) {
             // Reset all input fields
             row.querySelector('.item-unit').value = '';
-            row.querySelector('.item-price').value = '0.00';
+            row.querySelector('.item-supplier-price').value = '0.00';
             row.querySelector('.item-quantity').value = '1';
-            row.querySelector('.item-dependent-costs').value = '0.00';
-            row.querySelector('.item-price-difference').value = '0.00';
-            row.querySelector('.item-vat-rate').value = '0';
+            row.querySelector('.item-original-price').value = '0.00';
             row.querySelector('.item-note').value = '';
             
             // Reset calculated fields
-            row.querySelector('.item-value').textContent = '0.00';
-            row.querySelector('.item-value-without-vat').textContent = '0.00';
-            row.querySelector('.item-vat-amount').textContent = '0.00';
-            row.querySelector('.item-value-with-vat').textContent = '0.00';
+            row.querySelector('.item-supplier-value').textContent = '0.00';
+            row.querySelector('.item-price-difference').textContent = '0.00';
+            row.querySelector('.item-total-price').textContent = '0.00';
             row.querySelector('.item-unit-price').textContent = '0.00';
             
             // Update totals
             calculateTotals();
         }
-
+        
         function calculateRow(row) {
             // Get values from the row
             const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-            const price = parseFloat(row.querySelector('.item-price').value) || 0;
-            const dependentCosts = parseFloat(row.querySelector('.item-dependent-costs').value) || 0;
-            const priceDifference = parseFloat(row.querySelector('.item-price-difference').value) || 0;
-            const vatRate = parseFloat(row.querySelector('.item-vat-rate').value) || 0;
+            const supplierPrice = parseFloat(row.querySelector('.item-supplier-price').value) || 0;
+            const originalPrice = parseFloat(row.querySelector('.item-original-price').value) || 0;
             
-            // Calculate values
-            const value = quantity * price; // Column 6: Value = Quantity * Price per unit
-            const valueWithoutVat = value + dependentCosts + priceDifference; // Column 9: Value without VAT
-            const vatAmount = valueWithoutVat * (vatRate / 100); // Column 11: VAT Amount
-            const valueWithVat = valueWithoutVat + vatAmount; // Column 12: Value with VAT
+            // Calculate column 6: Supplier Value (quantity × supplierPrice)
+            const supplierValue = quantity * supplierPrice;
             
-            // Update the calculated fields
-            row.querySelector('.item-value').textContent = value.toFixed(2);
-            row.querySelector('.item-value-without-vat').textContent = valueWithoutVat.toFixed(2);
-            row.querySelector('.item-vat-amount').textContent = vatAmount.toFixed(2);
-            row.querySelector('.item-value-with-vat').textContent = valueWithVat.toFixed(2);
+            // Calculate column 12: Total Price (quantity x originalPrice)
+            const totalPrice = quantity * originalPrice;
             
-            // Note: We do NOT update item-unit-price here as it's directly from the database
-            // and doesn't change based on other calculations
+            // Calculate column 8: Price Difference (totalPrice - supplierValue)
+            const priceDifference = totalPrice - supplierValue;
+            
+            // Update the row with calculated values
+            row.querySelector('.item-supplier-value').textContent = supplierValue.toFixed(2);
+            row.querySelector('.item-price-difference').textContent = priceDifference.toFixed(2);
+            row.querySelector('.item-total-price').textContent = totalPrice.toFixed(2);
+            row.querySelector('.item-unit-price').textContent = originalPrice.toFixed(2);
         }
-
+        
         function calculateTotals() {
-            let totalValue = 0;
-            let totalVatAmount = 0;
-            let totalWithVat = 0;
+            let totalSupplierValue = 0;
+            let totalPrice = 0;
             
             // Sum up all row values
             document.querySelectorAll('#invoice-items tr:not(.hidden)').forEach(row => {
-                totalValue += parseFloat(row.querySelector('.item-value').textContent) || 0;
-                totalVatAmount += parseFloat(row.querySelector('.item-vat-amount').textContent) || 0;
-                totalWithVat += parseFloat(row.querySelector('.item-value-with-vat').textContent) || 0;
+                totalSupplierValue += parseFloat(row.querySelector('.item-supplier-value').textContent) || 0;
+                totalPrice += parseFloat(row.querySelector('.item-total-price').textContent) || 0;
             });
             
             // Update totals
-            document.getElementById('total-value').textContent = totalValue.toFixed(2);
-            document.getElementById('total-vat-amount').textContent = totalVatAmount.toFixed(2);
-            document.getElementById('total-with-vat').textContent = totalWithVat.toFixed(2);
+            document.getElementById('total-supplier-value').textContent = totalSupplierValue.toFixed(2);
+            document.getElementById('total-price').textContent = totalPrice.toFixed(2);
         }
-
+        
         function prepareFormData() {
             // Prepare document info
             document.getElementById('document-type-input').value = document.getElementById('document-type').value;
@@ -388,14 +364,10 @@
                     items.push({
                         item_id: parseInt(itemSelect.value),
                         quantity: parseFloat(row.querySelector('.item-quantity').value) || 0,
-                        price: parseFloat(row.querySelector('.item-price').value) || 0,
-                        dependent_costs: parseFloat(row.querySelector('.item-dependent-costs').value) || 0,
-                        price_difference: parseFloat(row.querySelector('.item-price-difference').value) || 0,
-                        value: parseFloat(row.querySelector('.item-value').textContent) || 0,
-                        value_without_vat: parseFloat(row.querySelector('.item-value-without-vat').textContent) || 0,
-                        vat_rate: parseFloat(row.querySelector('.item-vat-rate').value) || 0,
-                        vat_amount: parseFloat(row.querySelector('.item-vat-amount').textContent) || 0,
-                        value_with_vat: parseFloat(row.querySelector('.item-value-with-vat').textContent) || 0,
+                        supplier_price: parseFloat(row.querySelector('.item-supplier-price').value) || 0,
+                        supplier_value: parseFloat(row.querySelector('.item-supplier-value').textContent) || 0,
+                        price_difference: parseFloat(row.querySelector('.item-price-difference').textContent) || 0,
+                        total_price: parseFloat(row.querySelector('.item-total-price').textContent) || 0,
                         unit_price: parseFloat(row.querySelector('.item-unit-price').textContent) || 0,
                         note: row.querySelector('.item-note').value
                     });
