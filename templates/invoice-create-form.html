@@ -28,7 +28,7 @@
 
     <div class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h1 class="text-2xl font-bold mb-6">Create New Invoice</h1>
+            <!-- <h1 class="text-2xl font-bold mb-6">Create New Invoice</h1> -->
             
             <form id="invoiceForm" hx-post="/invoices/create" hx-target="#response-message" hx-swap="innerHTML">
                 <!-- Supplier Selection -->
@@ -37,7 +37,7 @@
                     <select id="supplier" name="supplier_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         <option value="">-- Select Supplier --</option>
                         {{range .Suppliers}}
-                            <option value="{{.ID}}">{{.Name}} - {{.Code}}</option>
+                            <option value="{{.ID}}">{{.Name}} - {{.Code}} / {{.Address}}</option>
                         {{end}}
                     </select>
                 </div>
@@ -129,7 +129,7 @@
     </div>
     
     <!-- Item Search Result Template (Hidden) -->
-    <!-- <template id="search-result-template">
+    <template id="search-result-template">
         <div class="item-row p-2 cursor-pointer hover:bg-gray-100" 
              data-id="" data-name="" data-price="" data-unit="" data-tax-rate=""
              onclick="addLineItem(this)">
@@ -283,6 +283,6 @@
             document.getElementById('tax-amount').textContent = `$${taxAmount.toFixed(2)}`;
             document.getElementById('total').textContent = `$${(subtotal + taxAmount).toFixed(2)}`;
         }
-    </script> -->
+    </script>
 </body>
 </html>
