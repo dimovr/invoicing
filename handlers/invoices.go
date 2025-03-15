@@ -215,6 +215,7 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	invoiceItem := models.InvoiceItem{
 		ItemID:          uint(itemID),
 		Name:            item.Name,
+		Unit:            item.Unit,
 		InvoiceID:       uint(invoiceIDInt),
 		Quantity:        quantity,
 		Price:           price,

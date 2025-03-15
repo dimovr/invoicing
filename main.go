@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"invoicing-item-app/handlers"
 	"invoicing-item-app/models"
 
@@ -13,6 +14,13 @@ func main() {
 	db := initDb()
 
 	r := gin.Default()
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+	}
+	// Load templates with the custom function map
+	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")
 
 	companyHandler := handlers.NewCompanyHandler(db)

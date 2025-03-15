@@ -6,15 +6,22 @@
     <title>Kalkulacija</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <style>
-        @media print {
-            .no-print {
-                display: none;
-            }
-        }
-        
+    <style>        
         .table-bordered th, .table-bordered td {
             border: 1px solid #e2e8f0;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #kalkulacija, #kalkulacija * {
+                visibility: visible;
+            }
+            /* #kalkulacija {
+                position: absolute;
+                left: 0;
+                top: 0;
+            } */
         }
     </style>
 </head>
@@ -31,7 +38,7 @@
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 mx-auto p-4 bg-white shadow-md my-8">
+    <div id="kalkulacija" class="container mx-auto px-4 mx-auto p-4 bg-white shadow-md my-8">
         <!-- Header Section -->
         <div class="grid grid-cols-2 gap-4 mb-6">
             <div>
@@ -56,6 +63,7 @@
         <div class="overflow-x-auto mb-6">
             <table class="min-w-full table-bordered">
                 <thead class="bg-gray-100">
+                    <!-- Your existing thead remains unchanged -->
                     <tr class="text-xs">
                         <th class="p-2 text-center">Red. broj</th>
                         <th class="p-2 text-center">Naziv robe</th>
@@ -103,54 +111,31 @@
                     </tr>
                 </thead>
                 <tbody id="invoice-items">
-                    <tr id="item-row-template" class="hidden">
-                        <td class="p-2 text-center row-number"></td>
-                        <td class="p-2">
-                            <select class="w-full border item-selector">
-                                <option value="">Proizvod</option>
-                                {{ range .Items }}
-                                <option value="{{ .ID }}" data-price="{{ .Price }}" data-unit="{{ .Unit }}" data-tax-rate="{{ .TaxRate }}">{{ .Name }}</option>
-                                {{ end }}
-                            </select>
-                        </td>
-                        <td class="p-2">
-                            <input type="text" class="w-full border-none item-unit" readonly>
-                        </td>
-                        <td class="p-2">
-                            <input type="number" class="w-full border item-quantity" value="1" min="1" step="1">
-                        </td>
-                        <td class="p-2">
-                            <input type="number" step="0.01" class="w-full border item-supplier-price" value="0.00">
-                        </td>
-                        <td class="p-2 text-right item-supplier-value">0.00</td>
-                        <td class="p-2 text-center">
-                            <!-- Empty as requested -->
-                        </td>
-                        <td class="p-2 text-right item-price-difference">0.00</td>
-                        <td class="p-2 text-center">
-                            <!-- Empty as requested -->
-                        </td>
-                        <td class="p-2 text-center">
-                            <!-- Empty as requested -->
-                        </td>
-                        <td class="p-2 text-center">
-                            <!-- Empty as requested -->
-                        </td>
-                        <td class="p-2 text-right item-total-price">0.00</td>
-                        <td class="p-2 text-right item-unit-price">0.00</td>
-                        <td class="p-2">
-                            <input type="text" class="w-full border item-note">
-                        </td>
-                        <!-- Hidden field to store the original price -->
-                        <input type="hidden" class="item-original-price">
+                    {{ range $index, $item := .Invoice.LineItems }}
+                    <tr>
+                        <td class="p-2 text-center">{{ add $index 1 }}</td>
+                        <td class="p-2 text-center">{{ $item.Name }}</td>
+                        <td class="p-2 text-center">{{ $item.Unit }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.Quantity }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.Price }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.Value }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.DependentCosts }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.PriceDifference }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.ValueWithoutVat }}</td>
+                        <td class="p-2 text-center">{{ printf "%.2f" $item.VatRate }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.VatAmount }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.ValueWithVat }}</td>
+                        <td class="p-2 text-right">{{ printf "%.2f" $item.UnitPrice }}</td>
+                        <td class="p-2 text-center">{{ $item.Note }}</td>
                     </tr>
+                    {{ end }}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="5" class="p-2 text-right font-bold">Total:</td>
-                        <td class="p-2 text-right font-bold" id="total-supplier-value">0.00</td>
+                        <td class="p-2 text-right font-bold">{{ printf "%.2f" .Invoice.Subtotal }}</td>
                         <td colspan="5" class="p-2"></td>
-                        <td class="p-2 text-right font-bold" id="total-price">0.00</td>
+                        <td class="p-2 text-right font-bold">{{ printf "%.2f" .Invoice.Total }}</td>
                         <td colspan="2" class="p-2"></td>
                     </tr>
                 </tfoot>
@@ -168,199 +153,17 @@
             </div>
         </div>
 
-        <!-- Response Message -->
-        <div id="response-message" class="mt-4 text-center"></div>
-
-        <!-- Button Section (No Print) -->
-        <div class="flex justify-between mt-8 no-print">
-            <button id="add-row-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Row</button>
-            <button id="print-btn" class="bg-gray-500 text-white px-4 py-2 rounded">Print</button>
-        </div>
     </div>
 
-    <form id="invoice-form" class="hidden">
-        <input type="hidden" name="company_id" value="{{ .Company.ID }}">
-        <input type="hidden" name="supplier_id" id="supplier-id-input">
-        <input type="hidden" name="document_type" id="document-type-input">
-        <input type="hidden" name="document_number" id="document-number-input">
-        <input type="hidden" name="items" id="items-json">
-    </form>
-
+    <button id="print-btn" class="bg-gray-500 text-white px-4 py-2 rounded w-full">
+        <!-- <i class="bi bi-print"></i> Print -->
+        Print
+    </button>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add first row automatically
-            addNewRow();
-            
-            // Add row button functionality
-            document.getElementById('add-row-btn').addEventListener('click', function() {
-                addNewRow();
-            });
-            
-            // Print button functionality
-            document.getElementById('print-btn').addEventListener('click', function() {
-                window.print();
-            });
-            
-            // Save button functionality
-            document.getElementById('save-btn').addEventListener('click', function() {
-                prepareFormData();
-            });
-            
-            // Listen for supplier change
-            document.getElementById('supplier-select').addEventListener('change', function() {
-                document.getElementById('supplier-id-input').value = this.value;
-            });
-            
-            // Listen for document type change
-            document.getElementById('document-type').addEventListener('change', function() {
-                document.getElementById('document-type-input').value = this.value;
-            });
-            
-            // Listen for document number change
-            document.getElementById('document-number').addEventListener('input', function() {
-                document.getElementById('document-number-input').value = this.value;
-            });
+        document.getElementById('print-btn').addEventListener('click', function() {
+            window.print();
         });
-        
-        function addNewRow() {
-            const tbody = document.getElementById('invoice-items');
-            const template = document.getElementById('item-row-template');
-            const newRow = template.cloneNode(true);
-            
-            newRow.id = 'item-row-' + (tbody.children.length);
-            newRow.classList.remove('hidden');
-            
-            // Set row number
-            newRow.querySelector('.row-number').textContent = tbody.children.length;
-            
-            // Add event listeners
-            addRowEventListeners(newRow);
-            
-            tbody.appendChild(newRow);
-        }
-        
-        function addRowEventListeners(row) {
-            // Item selector change
-            const itemSelector = row.querySelector('.item-selector');
-            itemSelector.addEventListener('change', function() {
-                if (this.value) {
-                    const selectedOption = this.options[this.selectedIndex];
-                    
-                    // Get data from selected option
-                    const price = selectedOption.getAttribute('data-price') || '0.00';
-                    const unit = selectedOption.getAttribute('data-unit') || '';
-                    
-                    // Populate fields
-                    row.querySelector('.item-unit').value = unit;
-                    row.querySelector('.item-original-price').value = price;
-                    row.querySelector('.item-unit-price').textContent = price;
-                    
-                    // Calculate row
-                    calculateRow(row);
-                    calculateTotals();
-                } else {
-                    // Reset row if no item selected
-                    resetRow(row);
-                }
-            });
-            
-            // Quantity change
-            row.querySelector('.item-quantity').addEventListener('input', function() {
-                calculateRow(row);
-                calculateTotals();
-            });
-            
-            // Supplier price change
-            row.querySelector('.item-supplier-price').addEventListener('input', function() {
-                calculateRow(row);
-                calculateTotals();
-            });
-        }
-        
-        function resetRow(row) {
-            // Reset all input fields
-            row.querySelector('.item-unit').value = '';
-            row.querySelector('.item-supplier-price').value = '0.00';
-            row.querySelector('.item-quantity').value = '1';
-            row.querySelector('.item-original-price').value = '0.00';
-            row.querySelector('.item-note').value = '';
-            
-            // Reset calculated fields
-            row.querySelector('.item-supplier-value').textContent = '0.00';
-            row.querySelector('.item-price-difference').textContent = '0.00';
-            row.querySelector('.item-total-price').textContent = '0.00';
-            row.querySelector('.item-unit-price').textContent = '0.00';
-            
-            // Update totals
-            calculateTotals();
-        }
-        
-        function calculateRow(row) {
-            // Get values from the row
-            const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-            const supplierPrice = parseFloat(row.querySelector('.item-supplier-price').value) || 0;
-            const originalPrice = parseFloat(row.querySelector('.item-original-price').value) || 0;
-            
-            // Calculate column 6: Supplier Value (quantity × supplierPrice)
-            const supplierValue = quantity * supplierPrice;
-            
-            // Calculate column 12: Total Price (quantity x originalPrice)
-            const totalPrice = quantity * originalPrice;
-            
-            // Calculate column 8: Price Difference (totalPrice - supplierValue)
-            const priceDifference = totalPrice - supplierValue;
-            
-            // Update the row with calculated values
-            row.querySelector('.item-supplier-value').textContent = supplierValue.toFixed(2);
-            row.querySelector('.item-price-difference').textContent = priceDifference.toFixed(2);
-            row.querySelector('.item-total-price').textContent = totalPrice.toFixed(2);
-            row.querySelector('.item-unit-price').textContent = originalPrice.toFixed(2);
-        }
-        
-        function calculateTotals() {
-            let totalSupplierValue = 0;
-            let totalPrice = 0;
-            
-            // Sum up all row values
-            document.querySelectorAll('#invoice-items tr:not(.hidden)').forEach(row => {
-                totalSupplierValue += parseFloat(row.querySelector('.item-supplier-value').textContent) || 0;
-                totalPrice += parseFloat(row.querySelector('.item-total-price').textContent) || 0;
-            });
-            
-            // Update totals
-            document.getElementById('total-supplier-value').textContent = totalSupplierValue.toFixed(2);
-            document.getElementById('total-price').textContent = totalPrice.toFixed(2);
-        }
-        
-        function prepareFormData() {
-            // Prepare document info
-            document.getElementById('document-type-input').value = document.getElementById('document-type').value;
-            document.getElementById('document-number-input').value = document.getElementById('document-number').value;
-            document.getElementById('supplier-id-input').value = document.getElementById('supplier-select').value;
-            
-            // Collect items data
-            const items = [];
-            document.querySelectorAll('#invoice-items tr:not(.hidden)').forEach(row => {
-                const itemSelect = row.querySelector('.item-selector');
-                if (itemSelect && itemSelect.value) {
-                    items.push({
-                        item_id: parseInt(itemSelect.value),
-                        quantity: parseFloat(row.querySelector('.item-quantity').value) || 0,
-                        supplier_price: parseFloat(row.querySelector('.item-supplier-price').value) || 0,
-                        supplier_value: parseFloat(row.querySelector('.item-supplier-value').textContent) || 0,
-                        price_difference: parseFloat(row.querySelector('.item-price-difference').textContent) || 0,
-                        total_price: parseFloat(row.querySelector('.item-total-price').textContent) || 0,
-                        unit_price: parseFloat(row.querySelector('.item-unit-price').textContent) || 0,
-                        note: row.querySelector('.item-note').value
-                    });
-                }
-            });
-            
-            // Set items JSON in the form
-            document.getElementById('items-json').value = JSON.stringify(items);
-            
-            // Form will be submitted by HTMX
-        }
-    </script>
+     </script>
 </body>
 </html>
