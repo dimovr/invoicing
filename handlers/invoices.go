@@ -298,12 +298,15 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 		item.VatAmount = vatAmount
 		item.ValueWithVat = valueWithDiscount + vatAmount
 
-		if err := ic.DB.Save(&item).Error; err != nil {
-			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-				"error": "Could not update line item: " + err.Error(),
-			})
-			return
-		}
+		fmt.Println(item)
+
+		// if err := ic.DB.Save(&item).Error; err != nil {
+		// 	fmt.Println(err)
+		// 	c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+		// 		"error": "Could not update line item: " + err.Error(),
+		// 	})
+		// 	return
+		// }
 
 		subtotal += valueWithDiscount
 		taxAmount += vatAmount
