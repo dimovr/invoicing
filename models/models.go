@@ -6,12 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Todo struct {
-	gorm.Model
-	Title     string `json:"title"`
-	Completed bool   `json:"completed"`
-}
-
 type Item struct {
 	gorm.Model
 	ID      uint    `gorm:"primaryKey" json:"ID"`
@@ -42,15 +36,15 @@ type Supplier struct {
 
 type Invoice struct {
 	gorm.Model
-	ID         uint     `gorm:"primaryKey" json:"id"`
-	SupplierID uint     `gorm:"not null" json:"supplier_id"`
-	Supplier   Supplier `gorm:"foreignKey:SupplierID" json:"supplier"`
-	// LineItems  []InvoiceItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
-	Subtotal       float64   `json:"subtotal"`   // Calculated: Sum of item prices * quantitys
-	TaxAmount      float64   `json:"tax_amount"` // Calculated: Sum of (item price * quantity * tax_rate)
-	Total          float64   `json:"total"`      // Calculated: Subtotal + TaxAmount
-	Date           time.Time `json:"date"`
-	DocumentNumber string    `json:"document_number"`
+	ID             uint          `gorm:"primaryKey" json:"id"`
+	SupplierID     uint          `gorm:"not null" json:"supplier_id"`
+	Supplier       Supplier      `gorm:"foreignKey:SupplierID" json:"supplier"`
+	LineItems      []InvoiceItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
+	Subtotal       float64       `json:"subtotal"`   // Calculated: Sum of item prices * quantitys
+	TaxAmount      float64       `json:"tax_amount"` // Calculated: Sum of (item price * quantity * tax_rate)
+	Total          float64       `json:"total"`      // Calculated: Subtotal + TaxAmount
+	Date           time.Time     `json:"date"`
+	DocumentNumber string        `json:"document_number"`
 }
 
 type InvoiceItem struct {

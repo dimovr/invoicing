@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{})
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
 
 	r := gin.Default()
 	// Define custom template functions

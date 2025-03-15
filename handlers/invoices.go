@@ -121,7 +121,8 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 
 	// Parse items JSON
 	var items []models.InvoiceItem
-	itemsJSON := c.PostForm("items_json")
+	itemsJSON := c.PostForm("items")
+	fmt.Println(itemsJSON)
 	if err := json.Unmarshal([]byte(itemsJSON), &items); err != nil {
 		fmt.Println("Error processing items:", err)
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
@@ -175,8 +176,7 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 		}
 	}
 
-	// Success message
 	c.String(http.StatusOK, `<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
-		<strong>Success!</strong> Invoice saved successfully.
+		<strong>Uspesno sacuvano</strong>
 	</div>`)
 }
