@@ -14,7 +14,6 @@ func main() {
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
-	r.Static("/static", "./static")
 
 	companyHandler := handlers.NewCompanyHandler(db)
 	r.GET("/company", companyHandler.GetCompany)
