@@ -67,8 +67,9 @@
         </div>
         
         <div class="flex justify-end">
+        <!-- <button type="submit" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded"> -->
             <button id="complete-invoice" hx-post="/invoices/{{.Invoice.ID}}/complete" hx-target="#main-content" hx-swap="innerHTML" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Complete Invoice
+                <i class="bi bi-check"></i>
             </button>
         </div>
     </div>

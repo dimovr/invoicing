@@ -54,20 +54,14 @@ func main() {
 	r.PUT("/suppliers/:id", supplierHandler.UpdateSupplier)
 	r.DELETE("/suppliers/:id", supplierHandler.DeleteSupplier)
 
-	setupRoutes(r, db)
+	invoiceHandler := handlers.NewInvoiceHandler(db)
+	r.GET("/invoices", invoiceHandler.GetInvoices)
+	r.POST("/invoices/initialize", invoiceHandler.InitializeInvoice)
+	r.POST("/invoices/:id/add-item", invoiceHandler.AddLineItem)
+	r.DELETE("/invoices/:id/items/:item_id", invoiceHandler.RemoveLineItem)
+	r.POST("/invoices/:id/complete", invoiceHandler.CompleteInvoice)
+	r.GET("/invoices/:id/view", invoiceHandler.GetInvoiceDetails)
+	r.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)
 
 	r.Run(":8080")
-}
-
-func setupRoutes(router *gin.Engine, db *gorm.DB) {
-	// Initialize controllers
-	invoiceController := handlers.NewInvoiceController(db)
-
-	router.GET("/invoices", invoiceController.GetInvoices)
-	router.POST("/invoices/initialize", invoiceController.InitializeInvoice)
-	router.POST("/invoices/:id/add-item", invoiceController.AddLineItem)
-	router.DELETE("/invoices/:id/items/:item_id", invoiceController.RemoveLineItem)
-	router.POST("/invoices/:id/complete", invoiceController.CompleteInvoice)
-	router.GET("/invoices/:id/view", invoiceController.GetInvoiceDetails)
-	router.DELETE("/invoices/:id", invoiceController.DeleteInvoice)
 }

@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type InvoiceController struct {
+type InvoiceHandler struct {
 	DB *gorm.DB
 }
 
@@ -25,11 +25,11 @@ type LineItemInput struct {
 	VatRate  float64 `json:"vat_rate"`
 }
 
-func NewInvoiceController(db *gorm.DB) *InvoiceController {
-	return &InvoiceController{DB: db}
+func NewInvoiceHandler(db *gorm.DB) *InvoiceHandler {
+	return &InvoiceHandler{DB: db}
 }
 
-func (ic *InvoiceController) GetInvoices(c *gin.Context) {
+func (ic *InvoiceHandler) GetInvoices(c *gin.Context) {
 	var invoices []models.Invoice
 	if err := ic.DB.Preload("Supplier").Preload("LineItems").Find(&invoices).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -71,7 +71,7 @@ func (ic *InvoiceController) GetInvoices(c *gin.Context) {
 	})
 }
 
-func (ic *InvoiceController) InitializeInvoice(c *gin.Context) {
+func (ic *InvoiceHandler) InitializeInvoice(c *gin.Context) {
 	supplierID, err := strconv.Atoi(c.PostForm("supplier_id"))
 	if err != nil || supplierID == 0 {
 		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
@@ -122,7 +122,7 @@ func (ic *InvoiceController) InitializeInvoice(c *gin.Context) {
 }
 
 // GetInvoiceEditPage loads the invoice edit page
-func (ic *InvoiceController) GetInvoiceEditPage(c *gin.Context, invoiceID ...uint) {
+func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context, invoiceID ...uint) {
 	var id uint
 
 	// Check if we're being called with an ID parameter
@@ -175,7 +175,7 @@ func (ic *InvoiceController) GetInvoiceEditPage(c *gin.Context, invoiceID ...uin
 }
 
 // AddLineItem adds an item to an invoice
-func (ic *InvoiceController) AddLineItem(c *gin.Context) {
+func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	invoiceID := c.Param("id")
 	invoiceIDInt, err := strconv.Atoi(invoiceID)
 	if err != nil {
@@ -275,18 +275,18 @@ func (ic *InvoiceController) AddLineItem(c *gin.Context) {
 		TotalValue: fmt.Sprintf("%.2f", valueWithDiscount+vatAmount),
 	}
 
-	// Remove the "no items" row if it exists (using hx-swap-oob)
-	noItemsRow := `<tr id="no-items" hx-swap-oob="true"></tr>`
+	fmt.Println(lineItemData)
 
 	// Render the line item template
 	c.HTML(http.StatusOK, "invoice-line-item.html", gin.H{
-		"LineItem": lineItemData,
-		"NoItems":  noItemsRow,
+		"InvoiceID": invoiceIDInt,
+		"ItemID":    uint(itemID),
+		"LineItem":  lineItemData,
 	})
 }
 
 // RemoveLineItem removes an item from an invoice
-func (ic *InvoiceController) RemoveLineItem(c *gin.Context) {
+func (ic *InvoiceHandler) RemoveLineItem(c *gin.Context) {
 	invoiceID := c.Param("id")
 	itemID := c.Param("item_id")
 
@@ -311,7 +311,7 @@ func (ic *InvoiceController) RemoveLineItem(c *gin.Context) {
 }
 
 // CompleteInvoice finalizes an invoice and redirects to the view page
-func (ic *InvoiceController) CompleteInvoice(c *gin.Context) {
+func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 	invoiceID := c.Param("id")
 	invoiceIDInt, err := strconv.Atoi(invoiceID)
 	if err != nil {
@@ -373,7 +373,7 @@ func (ic *InvoiceController) CompleteInvoice(c *gin.Context) {
 }
 
 // GetInvoiceDetails shows the view page for an invoice
-func (ic *InvoiceController) GetInvoiceDetails(c *gin.Context) {
+func (ic *InvoiceHandler) GetInvoiceDetails(c *gin.Context) {
 	id := c.Param("id")
 
 	var company models.Company
@@ -408,7 +408,7 @@ func (ic *InvoiceController) GetInvoiceDetails(c *gin.Context) {
 	})
 }
 
-func (ic *InvoiceController) DeleteInvoice(c *gin.Context) {
+func (ic *InvoiceHandler) DeleteInvoice(c *gin.Context) {
 	id := c.Param("id")
 
 	// First delete all line items
