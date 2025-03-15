@@ -31,7 +31,7 @@
             </div>
             
             <div class="mb-6">
-                <form id="addItemForm" hx-post="/invoices/{{.Invoice.ID}}/add-item" hx-target="#line-items" hx-swap="beforeend">
+                <form id="addItemForm" hx-post="/invoices/{{.Invoice.ID}}/items" hx-target="#line-items" hx-swap="beforeend">
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                         <div class="col-span-2">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="item_id">Item</label>

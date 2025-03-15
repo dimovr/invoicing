@@ -30,11 +30,11 @@
                 <table id="itemsTable" class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Unit</th>
-                            <th>TaxRate</th>
-                            <th class="text-end">Actions</th>
+                            <th>Proizvod</th>
+                            <th>Cena</th>
+                            <th>Jedinica</th>
+                            <th>PDV</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody hx-get="/items/list" hx-trigger="load"></tbody>
@@ -45,10 +45,10 @@
                 <table id="suppliersTable" class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Address</th>
-                            <th class="text-end">Actions</th>
+                            <th>Ime</th>
+                            <th>Šifra</th>
+                            <th>Adresa</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>

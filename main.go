@@ -47,11 +47,11 @@ func main() {
 
 	invoiceHandler := handlers.NewInvoiceHandler(db)
 	r.GET("/invoices", invoiceHandler.GetInvoices)
-	r.POST("/invoices/initialize", invoiceHandler.InitializeInvoice)
-	r.POST("/invoices/:id/add-item", invoiceHandler.AddLineItem)
+	r.POST("/invoices", invoiceHandler.InitializeInvoice)
+	r.POST("/invoices/:id/items", invoiceHandler.AddLineItem)
 	r.DELETE("/invoices/:id/items/:item_id", invoiceHandler.RemoveLineItem)
 	r.POST("/invoices/:id/complete", invoiceHandler.CompleteInvoice)
-	r.GET("/invoices/:id/view", invoiceHandler.GetInvoiceDetails) // In main.go, add this to your route definitions:
+	r.GET("/invoices/:id/view", invoiceHandler.GetInvoiceDetails)
 	r.GET("/invoices/:id/edit", invoiceHandler.GetInvoiceEditPage)
 	r.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)
 

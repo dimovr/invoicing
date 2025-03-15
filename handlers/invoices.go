@@ -29,21 +29,6 @@ func (ic *InvoiceHandler) GetInvoices(c *gin.Context) {
 		return
 	}
 
-	// Calculate totals for each invoice
-	for i := range invoices {
-		var subtotal float64
-		var taxAmount float64
-
-		for _, item := range invoices[i].LineItems {
-			subtotal += item.Price * item.Quantity * (1 - item.PriceDifference/100)
-			taxAmount += item.Price * item.Quantity * (1 - item.PriceDifference/100) * (item.VatRate / 100)
-		}
-
-		invoices[i].Subtotal = subtotal
-		invoices[i].TaxAmount = taxAmount
-		invoices[i].Total = subtotal + taxAmount
-	}
-
 	// Get suppliers for the invoice creation form
 	var suppliers []models.Supplier
 	if err := ic.DB.Find(&suppliers).Error; err != nil {
@@ -139,6 +124,8 @@ func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context) {
 		})
 		return
 	}
+
+	fmt.Println(len(invoice.LineItems))
 
 	c.HTML(http.StatusOK, "invoice-form.html", gin.H{
 		"Invoice": invoice,
@@ -308,6 +295,8 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 		})
 		return
 	}
+
+	fmt.Println(len(invoice.LineItems))
 
 	// Redirect to the view page
 	c.Redirect(http.StatusFound, fmt.Sprintf("/invoices/%d/view", invoiceIDInt))
