@@ -3,32 +3,16 @@ package main
 import (
 	"invoicing-item-app/handlers"
 	"invoicing-item-app/models"
-	"text/template"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-var db *gorm.DB
-
 func main() {
-	var err error
-	db, err = gorm.Open(sqlite.Open("invoicing.db"), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
+	db := initDb()
 
 	r := gin.Default()
-	// Define custom template functions
-	funcMap := template.FuncMap{
-		"add": func(a, b int) int {
-			return a + b
-		},
-	}
-	// Load templates with the custom function map
-	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./static")
 
@@ -64,4 +48,13 @@ func main() {
 	r.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)
 
 	r.Run(":8080")
+}
+
+func initDb() *gorm.DB {
+	db, err := gorm.Open(sqlite.Open("invoicing.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
+	return db
 }

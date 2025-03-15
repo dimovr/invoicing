@@ -16,15 +16,6 @@ type InvoiceHandler struct {
 	DB *gorm.DB
 }
 
-type LineItemInput struct {
-	ItemID   uint    `json:"item_id"`
-	Price    float64 `json:"price"`
-	Quantity float64 `json:"quantity"`
-	Discount float64 `json:"discount"`
-	ItemName string  `json:"item_name"`
-	VatRate  float64 `json:"vat_rate"`
-}
-
 func NewInvoiceHandler(db *gorm.DB) *InvoiceHandler {
 	return &InvoiceHandler{DB: db}
 }
