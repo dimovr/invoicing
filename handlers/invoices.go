@@ -170,8 +170,8 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	// Check if item exists for invoiceid if yes return
 	var existingItem models.InvoiceItem
 	if err := ic.DB.Where("invoice_id = ? AND item_id = ?", invoiceIDInt, itemID).First(&existingItem).Error; err == nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Proizvod je vec dodat",
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Proizvod je već dodat",
 		})
 		return
 	}
