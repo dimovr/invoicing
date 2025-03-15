@@ -1,24 +1,94 @@
-<form hx-put="/items/{{.item.ID}}" hx-target="#item-{{.item.ID}}" hx-swap="outerHTML">
-    <div class="input-group">
-        <input type="text" name="Name" class="form-control" value="{{.item.Name}}" required>
-        <input type="number" step="0.01" name="Price" class="form-control" value="{{.item.Price}}" required>
-        <select name="Unit" class="form-control" required>
-            <option value="kg">kg</option>
-            <option value="komad">komad</option>
-            <option value="litar">litar</option>
-        </select>
-        <select name="TaxRate" class="form-control" required>
-            <option value="10">10</option>
-            <option value="20">20</option>
-        </select>
-        <button type="submit" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
-            <i class="bi bi-check"></i>
-        </button>
-        <button type="button" class="btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-2 rounded" 
-                hx-get="/items/form"
-                hx-target="#itemForm"
-                hx-swap="innerHTML">
-            <i class="bi bi-x"></i>
-        </button>
+<div id="invoiceEditForm" class="container mx-auto px-4 py-4">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-4">Create Invoice #{{.Invoice.DocumentNumber}}</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+                <span class="block text-gray-700 text-sm font-bold mb-2">Supplier:</span>
+                <span class="block text-gray-700">{{.Invoice.Supplier.Name}} - {{.Invoice.Supplier.Code}}</span>
+                <span class="block text-gray-500 text-sm">{{.Invoice.Supplier.Address}}</span>
+            </div>
+            <div>
+                <span class="block text-gray-700 text-sm font-bold mb-2">Document Number:</span>
+                <span class="block text-gray-700">{{.Invoice.DocumentNumber}}</span>
+            </div>
+            <div>
+                <span class="block text-gray-700 text-sm font-bold mb-2">Date:</span>
+                <span class="block text-gray-700">{{.Invoice.Date.Format "02.01.2006"}}</span>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-3">Add Items</h2>
+            <form id="addItemForm" hx-post="/invoices/{{.Invoice.ID}}/add-item" hx-target="#line-items" hx-swap="beforeend">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="item_id">Item</label>
+                        <select id="item_id" name="item_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                            <option value="">-- Select Item --</option>
+                            {{range .Items}}
+                                <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}">{{.Name}} - {{.Unit}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="buy_price">Buy Price</label>
+                        <input type="number" id="buy_price" name="price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="1" step="0.01" min="0.01" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="discount">Discount %</label>
+                        <input type="number" id="discount" name="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0" step="0.01" min="0" max="100">
+                    </div>
+                </div>
+                <div class="mt-2 flex justify-end">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        <i class="bi bi-plus"></i> Add Item
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="overflow-x-auto mb-6">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount %</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="line-items" class="bg-white divide-y divide-gray-200">
+                    {{if len .Invoice.LineItems}}
+                        {{range .Invoice.LineItems}}
+                            {{template "invoice-line-item.html" .}}
+                        {{end}}
+                    {{else}}
+                        <tr id="no-items">
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">No items added yet</td>
+                        </tr>
+                    {{end}}
+                </tbody>
+                <tfoot class="bg-gray-50">
+                    <tr>
+                        <td colspan="4" class="px-6 py-3 text-right font-bold">Subtotal:</td>
+                        <td id="subtotal" class="px-6 py-3 text-left font-bold">$0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="flex justify-end">
+            <button id="complete-invoice" hx-post="/invoices/{{.Invoice.ID}}/complete" hx-target="#main-content" hx-swap="innerHTML" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Complete Invoice
+            </button>
+        </div>
     </div>
-</form>
+</div>

@@ -1,8 +1,31 @@
 <div id="invoiceForm" class="container mx-auto px-4">
-
-    <a href="/invoices/create" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
-        <i class="bi bi-plus"></i> Nova kalkulacija
-    </a>
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+        <form hx-post="/invoices/initialize" hx-target="#main-content" hx-swap="innerHTML">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <select id="supplier" name="supplier_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="">-- Select Supplier --</option>
+                        {{range .suppliers}}
+                            <option value="{{.ID}}">{{.Name}} - {{.Code}} / {{.Address}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                <div>
+                    <input type="text" id="document_number" name="document_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <input type="date" id="date" name="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{.TodayDate}}" required>
+                </div>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+            </div>
+        </form>
+    </div>
 
     <div class="container mx-auto px-4 mt-4">
         <table id="invoicesTable" class="table">
@@ -11,6 +34,8 @@
                     <th>ID</th>
                     <th>Supplier</th>
                     <th>Address</th>
+                    <th>Document #</th>
+                    <th>Date</th>
                     <th>Subtotal</th>
                     <th>Tax Amount</th>
                     <th>Total</th>

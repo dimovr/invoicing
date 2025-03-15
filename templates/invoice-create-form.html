@@ -1,288 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Invoice</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <style>
-        .item-row:hover {
-            background-color: #f8f9fa;
-        }
-    </style>
-</head>
-<body>
-    <nav class="bg-gray-800 py-4">
-        <div class="container mx-auto px-4 mx-auto flex justify-between items-center">
-            <div class="flex space-x-4">
-                <a href="/company" class="text-white hover:text-gray-300 {{if eq .active "company"}}font-bold border-b-2 border-white{{end}}">Company</a>
-                <a href="/items" class="text-white hover:text-gray-300 {{if eq .active "items"}}font-bold border-b-2 border-white{{end}}">Items</a>
-                <a href="/suppliers" class="text-white hover:text-gray-300 {{if eq .active "suppliers"}}font-bold border-b-2 border-white{{end}}">Suppliers</a>
-                <a href="/invoices" class="text-white hover:text-gray-300 {{if eq .active "invoices"}}font-bold border-b-2 border-white{{end}}">Invoices</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <!-- <h1 class="text-2xl font-bold mb-6">Create New Invoice</h1> -->
-            
-            <form id="invoiceForm" hx-post="/invoices/create" hx-target="#response-message" hx-swap="innerHTML">
-                <!-- Supplier Selection -->
-                <div class="mb-6">
+<div id="invoiceForm" class="container mx-auto px-4">
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+        <h2 class="text-xl font-bold mb-2">Create New Invoice</h2>
+        
+        <form hx-post="/invoices/initialize" hx-target="#main-content" hx-swap="innerHTML">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="supplier">Supplier</label>
                     <select id="supplier" name="supplier_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         <option value="">-- Select Supplier --</option>
                         {{range .Suppliers}}
-                            <option value="{{.ID}}">{{.Name}} - {{.Code}} / {{.Address}}</option>
+                            <option value="{{.ID}}">{{.Name}} - {{.Code}}</option>
                         {{end}}
                     </select>
                 </div>
-                
-                <!-- Document Details -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="document_number">Document Number</label>
-                        <input type="text" id="document_number" name="document_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="date">Date</label>
-                        <input type="date" id="date" name="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{.TodayDate}}" required>
-                    </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="document_number">Document Number</label>
+                    <input type="text" id="document_number" name="document_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
-                
-                <!-- Item Search -->
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="item_search">Search Items</label>
-                    <div class="relative">
-                        <input type="text" id="item_search" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                               placeholder="Start typing to search items..." 
-                               hx-get="/api/items/search" 
-                               hx-trigger="keyup changed delay:500ms" 
-                               hx-target="#search-results" 
-                               hx-indicator="#search-indicator">
-                        <div id="search-indicator" class="htmx-indicator absolute right-3 top-2">
-                            <i class="bi bi-arrow-repeat animate-spin"></i>
-                        </div>
-                    </div>
-                    <div id="search-results" class="mt-2 border rounded bg-white shadow-sm max-h-60 overflow-y-auto hidden"></div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="date">Date</label>
+                    <input type="date" id="date" name="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{.TodayDate}}" required>
                 </div>
-                
-                <!-- Line Items Table -->
-                <h2 class="text-xl font-bold mb-3">Line Items</h2>
-                <div class="overflow-x-auto mb-6">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount %</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tax Rate</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="line-items" class="bg-white divide-y divide-gray-200">
-                            <!-- Line items will be added here dynamically -->
-                            <tr id="no-items" class="text-center">
-                                <td colspan="7" class="py-4 text-gray-500">No items added yet</td>
-                            </tr>
-                        </tbody>
-                        <tfoot class="bg-gray-50">
-                            <tr>
-                                <td colspan="5" class="px-6 py-3 text-right font-bold">Subtotal:</td>
-                                <td id="subtotal" class="px-6 py-3 text-left font-bold">$0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="5" class="px-6 py-3 text-right font-bold">Tax Amount:</td>
-                                <td id="tax-amount" class="px-6 py-3 text-left font-bold">$0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="5" class="px-6 py-3 text-right font-bold text-lg">Total:</td>
-                                <td id="total" class="px-6 py-3 text-left font-bold text-lg">$0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                
-                <!-- Hidden input for line items data -->
-                <input type="hidden" id="line-items-json" name="line_items" value="[]">
-                
-                <!-- Submit Button -->
-                <div class="flex justify-end">
-                    <button type="button" id="submit-invoice" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                        Create Invoice
-                    </button>
-                </div>
-            </form>
+            </div>
             
-            <!-- Response Message -->
-            <div id="response-message" class="mt-4"></div>
-        </div>
-    </div>
-    
-    <!-- Item Search Result Template (Hidden) -->
-    <template id="search-result-template">
-        <div class="item-row p-2 cursor-pointer hover:bg-gray-100" 
-             data-id="" data-name="" data-price="" data-unit="" data-tax-rate=""
-             onclick="addLineItem(this)">
-            <!-- Item details will be filled in dynamically -->
-        </div>
-    </template>
-    
-    <!-- Line Item Template (Hidden) -->
-    <template id="line-item-template">
-        <tr class="line-item" data-id="">
-            <td class="px-6 py-4 whitespace-nowrap">
-                <input type="hidden" name="item_id" value="">
-                <div class="text-sm font-medium text-gray-900 item-name"></div>
-                <div class="text-xs text-gray-500 item-unit"></div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-sm text-gray-900 item-price"></span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <input type="number" name="quantity" class="shadow border rounded w-20 py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline item-quantity" value="1" min="0.01" step="0.01" oninput="updateLineItemTotal(this)">
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <input type="number" name="discount" class="shadow border rounded w-20 py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline item-discount" value="0" min="0" max="100" step="0.01" oninput="updateLineItemTotal(this)">
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-sm text-gray-900 item-tax-rate"></span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <span class="item-subtotal">$0.00</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button type="button" class="text-red-600 hover:text-red-900" onclick="removeLineItem(this)">
-                    <i class="bi bi-trash"></i>
+            <div class="mt-4 flex justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    <i class="bi bi-plus"></i> Create Invoice
                 </button>
-            </td>
-        </tr>
-    </template>
-    
-    <script>
-        // Initialize date input to today's date if not set
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!document.getElementById('date').value) {
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('date').value = today;
-            }
-        });
-        
-        // Function to add a line item from search results
-        function addLineItem(element) {
-            // Hide the no items message
-            document.getElementById('no-items').classList.add('hidden');
-            
-            // Get item data from the clicked element
-            const itemId = element.getAttribute('data-id');
-            const itemName = element.getAttribute('data-name');
-            const itemPrice = parseFloat(element.getAttribute('data-price'));
-            const itemUnit = element.getAttribute('data-unit');
-            const itemTaxRate = parseInt(element.getAttribute('data-tax-rate'));
-            
-            // Check if item is already in the list
-            const existingItem = document.querySelector(`.line-item[data-id="${itemId}"]`);
-            if (existingItem) {
-                // Increment quantity instead of adding a new line
-                const quantityInput = existingItem.querySelector('.item-quantity');
-                quantityInput.value = (parseFloat(quantityInput.value) + 1).toFixed(2);
-                updateLineItemTotal(quantityInput);
-                return;
-            }
-            
-            // Clone the template
-            const template = document.getElementById('line-item-template');
-            const clone = document.importNode(template.content, true);
-            
-            // Fill in the data
-            const tr = clone.querySelector('tr');
-            tr.setAttribute('data-id', itemId);
-            
-            const itemIdInput = clone.querySelector('input[name="item_id"]');
-            itemIdInput.value = itemId;
-            
-            const nameElement = clone.querySelector('.item-name');
-            nameElement.textContent = itemName;
-            
-            const unitElement = clone.querySelector('.item-unit');
-            unitElement.textContent = itemUnit;
-            
-            const priceElement = clone.querySelector('.item-price');
-            priceElement.textContent = `$${itemPrice.toFixed(2)}`;
-            priceElement.setAttribute('data-price', itemPrice);
-            
-            const taxRateElement = clone.querySelector('.item-tax-rate');
-            taxRateElement.textContent = `${itemTaxRate}%`;
-            taxRateElement.setAttribute('data-tax-rate', itemTaxRate);
-            
-            // Add to the table
-            document.getElementById('line-items').appendChild(clone);
-            
-            // Calculate subtotal
-            updateLineItemTotal(tr.querySelector('.item-quantity'));
-            
-            // Hide search results
-            document.getElementById('search-results').classList.add('hidden');
-            document.getElementById('item_search').value = '';
-        }
-        
-        // Function to update line item total
-        function updateLineItemTotal(element) {
-            const row = element.closest('tr');
-            const price = parseFloat(row.querySelector('.item-price').getAttribute('data-price'));
-            const quantity = parseFloat(row.querySelector('.item-quantity').value);
-            const discount = parseFloat(row.querySelector('.item-discount').value) / 100; // Convert percentage to decimal
-            
-            // Calculate subtotal with discount
-            const subtotal = price * quantity * (1 - discount);
-            row.querySelector('.item-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            
-            // Update overall totals
-            updateTotals();
-        }
-        
-        // Function to remove line item
-        function removeLineItem(element) {
-            const row = element.closest('tr');
-            row.remove();
-            
-            // Show "no items" message if no items left
-            const lineItems = document.querySelectorAll('.line-item');
-            if (lineItems.length === 0) {
-                document.getElementById('no-items').classList.remove('hidden');
-            }
-            
-            // Update totals
-            updateTotals();
-        }
-        
-        // Function to update overall totals
-        function updateTotals() {
-            let subtotal = 0;
-            let taxAmount = 0;
-            
-            document.querySelectorAll('.line-item').forEach(row => {
-                const itemSubtotal = parseFloat(row.querySelector('.item-subtotal').textContent.replace('$', '')) || 0;
-                subtotal += itemSubtotal;
-            });
-            
-            // Update tax amount
-            taxAmount = subtotal * (taxRate / 100);
-            
-            // Update overall totals
-            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('tax-amount').textContent = `$${taxAmount.toFixed(2)}`;
-            document.getElementById('total').textContent = `$${(subtotal + taxAmount).toFixed(2)}`;
-        }
-    </script>
-</body>
-</html>
+            </div>
+        </form>
+    </div>
+
+    <div class="container mx-auto px-4 mt-4">
+        <table id="invoicesTable" class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Supplier</th>
+                    <th>Address</th>
+                    <th>Document #</th>
+                    <th>Date</th>
+                    <th>Subtotal</th>
+                    <th>Tax Amount</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .invoices}}
+                    {{template "invoice.html" .}}
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>

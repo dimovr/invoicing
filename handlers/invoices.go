@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,6 +14,15 @@ import (
 
 type InvoiceController struct {
 	DB *gorm.DB
+}
+
+type LineItemInput struct {
+	ItemID   uint    `json:"item_id"`
+	Price    float64 `json:"price"`
+	Quantity float64 `json:"quantity"`
+	Discount float64 `json:"discount"`
+	ItemName string  `json:"item_name"`
+	VatRate  float64 `json:"vat_rate"`
 }
 
 func NewInvoiceController(db *gorm.DB) *InvoiceController {
@@ -36,8 +44,8 @@ func (ic *InvoiceController) GetInvoices(c *gin.Context) {
 		var taxAmount float64
 
 		for _, item := range invoices[i].LineItems {
-			subtotal += item.Price * item.Quantity
-			taxAmount += item.Price * item.Quantity * (item.VatRate / 100)
+			subtotal += item.Price * item.Quantity * (1 - item.PriceDifference/100)
+			taxAmount += item.Price * item.Quantity * (1 - item.PriceDifference/100) * (item.VatRate / 100)
 		}
 
 		invoices[i].Subtotal = subtotal
@@ -45,98 +53,48 @@ func (ic *InvoiceController) GetInvoices(c *gin.Context) {
 		invoices[i].Total = subtotal + taxAmount
 	}
 
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"invoices": invoices,
-		"active":   "invoices",
-		"Title":    "Invoices",
-	})
-}
-
-func (ic *InvoiceController) GetInvoiceForm(c *gin.Context) {
-	var company models.Company
-	if err := ic.DB.First(&company).Error; err != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Company not found",
-		})
-		return
-	}
-
-	var items []models.Item
-	if err := ic.DB.Find(&items).Error; err != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Could not load items",
-		})
-		return
-	}
-
+	// Get suppliers for the invoice creation form
 	var suppliers []models.Supplier
 	if err := ic.DB.Find(&suppliers).Error; err != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Could not load suppliers",
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Failed to load suppliers: " + err.Error(),
 		})
 		return
 	}
 
-	currentDate := time.Now().Format("02.01.2006")
-
-	c.HTML(http.StatusOK, "invoice-create-form.html", gin.H{
-		"Company":     company,
-		"Items":       items,
-		"Suppliers":   suppliers,
-		"CurrentDate": currentDate,
-		"active":      "create-invoice",
-		"Title":       "Create Invoice",
+	c.HTML(http.StatusOK, "invoices.html", gin.H{
+		"invoices":  invoices,
+		"Suppliers": suppliers,
+		"TodayDate": time.Now().Format("2006-01-02"),
+		"active":    "invoices",
+		"Title":     "Invoices",
 	})
 }
 
-func (ic *InvoiceController) GetItemDetails(c *gin.Context) {
-	itemID, err := strconv.Atoi(c.Query("itemId"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
-		return
-	}
-
-	var item models.Item
-	if err := ic.DB.First(&item, itemID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
-		return
-	}
-
-	// Return item details as JSON
-	c.JSON(http.StatusOK, item)
-}
-
-func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
-	_, err := strconv.Atoi(c.PostForm("company_id"))
-	if err != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Invalid company ID",
-		})
-		return
-	}
-
+// InitializeInvoice creates a new invoice with basic info and redirects to the edit page
+func (ic *InvoiceController) InitializeInvoice(c *gin.Context) {
 	supplierID, err := strconv.Atoi(c.PostForm("supplier_id"))
 	if err != nil || supplierID == 0 {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Izaberite dobavljača",
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Please select a supplier",
 		})
 		return
 	}
 
 	documentNumber := c.PostForm("document_number")
 	if documentNumber == "" {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Unesite broj dokumenta",
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Please enter a document number",
 		})
 		return
 	}
 
-	// Parse date from form
-	dateStr := c.PostForm("invoice_date")
+	// Parse date
+	dateStr := c.PostForm("date")
 	var invoiceDate time.Time
 	if dateStr != "" {
 		var err error
-		invoiceDate, err = time.Parse("02.01.2006", dateStr)
+		invoiceDate, err = time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			invoiceDate = time.Now()
 		}
@@ -144,19 +102,231 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 		invoiceDate = time.Now()
 	}
 
-	var items []models.InvoiceItem
-	itemsJSON := c.PostForm("items")
-	if err := json.Unmarshal([]byte(itemsJSON), &items); err != nil {
-		fmt.Println("Error processing items:", err)
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Greska tokom obrade artikala",
+	// Create a new invoice with basic info
+	invoice := models.Invoice{
+		SupplierID:     uint(supplierID),
+		DocumentNumber: documentNumber,
+		Date:           invoiceDate,
+		Subtotal:       0,
+		TaxAmount:      0,
+		Total:          0,
+	}
+
+	if err := ic.DB.Create(&invoice).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Could not create invoice: " + err.Error(),
 		})
 		return
 	}
 
-	if len(items) == 0 {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Morate izabrati bar jedan artikal",
+	// Redirect to the invoice edit page
+	ic.GetInvoiceEditPage(c, invoice.ID)
+}
+
+// GetInvoiceEditPage loads the invoice edit page
+func (ic *InvoiceController) GetInvoiceEditPage(c *gin.Context, invoiceID ...uint) {
+	var id uint
+
+	// Check if we're being called with an ID parameter
+	if len(invoiceID) > 0 {
+		id = invoiceID[0]
+	} else {
+		// Otherwise, get it from the URL parameter
+		idParam := c.Param("id")
+		idInt, err := strconv.Atoi(idParam)
+		if err != nil {
+			c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+				"error": "Invalid invoice ID",
+			})
+			return
+		}
+		id = uint(idInt)
+	}
+
+	var invoice models.Invoice
+	if err := ic.DB.Preload("Supplier").Preload("LineItems").First(&invoice, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"error": "Invoice not found",
+		})
+		return
+	}
+
+	// Get item details for each line item
+	for i, lineItem := range invoice.LineItems {
+		var item models.Item
+		if err := ic.DB.First(&item, lineItem.ItemID).Error; err == nil {
+			invoice.LineItems[i].Note = item.Name // Store item name for display
+		}
+	}
+
+	// Load all available items
+	var items []models.Item
+	if err := ic.DB.Find(&items).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Could not load items: " + err.Error(),
+		})
+		return
+	}
+
+	c.HTML(http.StatusOK, "invoice-edit.html", gin.H{
+		"Invoice": invoice,
+		"Items":   items,
+		"active":  "invoices",
+		"Title":   "Edit Invoice",
+	})
+}
+
+// AddLineItem adds an item to an invoice
+func (ic *InvoiceController) AddLineItem(c *gin.Context) {
+	invoiceID := c.Param("id")
+	invoiceIDInt, err := strconv.Atoi(invoiceID)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Invalid invoice ID",
+		})
+		return
+	}
+
+	// Parse form data
+	itemID, err := strconv.Atoi(c.PostForm("item_id"))
+	if err != nil || itemID == 0 {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Please select an item",
+		})
+		return
+	}
+
+	price, err := strconv.ParseFloat(c.PostForm("price"), 64)
+	if err != nil || price <= 0 {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Please enter a valid price",
+		})
+		return
+	}
+
+	quantity, err := strconv.ParseFloat(c.PostForm("quantity"), 64)
+	if err != nil || quantity <= 0 {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Please enter a valid quantity",
+		})
+		return
+	}
+
+	discount, err := strconv.ParseFloat(c.PostForm("discount"), 64)
+	if err != nil {
+		discount = 0
+	}
+
+	// Get item details
+	var item models.Item
+	if err := ic.DB.First(&item, itemID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"error": "Item not found",
+		})
+		return
+	}
+
+	// Calculate values
+	valueWithoutDiscount := price * quantity
+	valueWithDiscount := valueWithoutDiscount * (1 - discount/100)
+	vatAmount := valueWithDiscount * (float64(item.TaxRate) / 100)
+
+	// Create the invoice item
+	invoiceItem := models.InvoiceItem{
+		ItemID:          uint(itemID),
+		InvoiceID:       uint(invoiceIDInt),
+		Quantity:        quantity,
+		Price:           price,
+		PriceDifference: discount,
+		Value:           valueWithDiscount,
+		ValueWithoutVat: valueWithDiscount,
+		VatRate:         float64(item.TaxRate),
+		VatAmount:       vatAmount,
+		ValueWithVat:    valueWithDiscount + vatAmount,
+		UnitPrice:       price,
+		Note:            item.Name,
+	}
+
+	if err := ic.DB.Create(&invoiceItem).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Could not add item to invoice: " + err.Error(),
+		})
+		return
+	}
+
+	// Prepare data for the line item template
+	lineItemData := struct {
+		ItemID     uint
+		InvoiceID  uint
+		ItemName   string
+		Price      string
+		Quantity   string
+		Discount   string
+		Value      string
+		VatAmount  string
+		TotalValue string
+	}{
+		ItemID:     uint(itemID),
+		InvoiceID:  uint(invoiceIDInt),
+		ItemName:   item.Name,
+		Price:      fmt.Sprintf("%.2f", price),
+		Quantity:   fmt.Sprintf("%.2f", quantity),
+		Discount:   fmt.Sprintf("%.2f", discount),
+		Value:      fmt.Sprintf("%.2f", valueWithDiscount),
+		VatAmount:  fmt.Sprintf("%.2f", vatAmount),
+		TotalValue: fmt.Sprintf("%.2f", valueWithDiscount+vatAmount),
+	}
+
+	// Remove the "no items" row if it exists (using hx-swap-oob)
+	noItemsRow := `<tr id="no-items" hx-swap-oob="true"></tr>`
+
+	// Render the line item template
+	c.HTML(http.StatusOK, "invoice-line-item.html", gin.H{
+		"LineItem": lineItemData,
+		"NoItems":  noItemsRow,
+	})
+}
+
+// RemoveLineItem removes an item from an invoice
+func (ic *InvoiceController) RemoveLineItem(c *gin.Context) {
+	invoiceID := c.Param("id")
+	itemID := c.Param("item_id")
+
+	if err := ic.DB.Where("invoice_id = ? AND item_id = ?", invoiceID, itemID).Delete(&models.InvoiceItem{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Could not remove item",
+		})
+		return
+	}
+
+	// Check if this was the last item
+	var count int64
+	ic.DB.Model(&models.InvoiceItem{}).Where("invoice_id = ?", invoiceID).Count(&count)
+
+	if count == 0 {
+		// If no items left, return the "no items" row
+		c.HTML(http.StatusOK, "invoice-line-item-empty.html", nil)
+	} else {
+		// Return empty response (the row will be removed by HTMX)
+		c.Status(http.StatusOK)
+	}
+}
+
+// CompleteInvoice finalizes an invoice and redirects to the view page
+func (ic *InvoiceController) CompleteInvoice(c *gin.Context) {
+	invoiceID := c.Param("id")
+	invoiceIDInt, err := strconv.Atoi(invoiceID)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Invalid invoice ID",
+		})
+		return
+	}
+
+	var invoice models.Invoice
+	if err := ic.DB.Preload("LineItems").First(&invoice, invoiceID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"error": "Invoice not found",
 		})
 		return
 	}
@@ -164,67 +334,47 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 	// Calculate totals
 	var subtotal float64
 	var taxAmount float64
-	for _, item := range items {
-		// Calculate item values
-		item.ValueWithoutVat = item.Price * item.Quantity
-		item.VatAmount = item.ValueWithoutVat * (item.VatRate / 100)
-		item.ValueWithVat = item.ValueWithoutVat + item.VatAmount
 
-		// Calculate unit price with dependent costs
-		if item.Quantity > 0 {
-			item.UnitPrice = (item.Price + (item.DependentCosts / item.Quantity)) * (1 + (item.PriceDifference / 100))
+	for _, item := range invoice.LineItems {
+		// Calculate item values based on discount
+		valueWithoutDiscount := item.Price * item.Quantity
+		valueWithDiscount := valueWithoutDiscount * (1 - item.PriceDifference/100)
+		vatAmount := valueWithDiscount * (item.VatRate / 100)
+
+		// Update the line item
+		item.Value = valueWithDiscount
+		item.ValueWithoutVat = valueWithDiscount
+		item.VatAmount = vatAmount
+		item.ValueWithVat = valueWithDiscount + vatAmount
+
+		if err := ic.DB.Save(&item).Error; err != nil {
+			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+				"error": "Could not update line item: " + err.Error(),
+			})
+			return
 		}
 
-		subtotal += item.ValueWithoutVat
-		taxAmount += item.VatAmount
+		subtotal += valueWithDiscount
+		taxAmount += vatAmount
 	}
 
-	invoice := models.Invoice{
-		SupplierID:     uint(supplierID),
-		DocumentNumber: documentNumber,
-		Date:           invoiceDate,
-		Subtotal:       subtotal,
-		TaxAmount:      taxAmount,
-		Total:          subtotal + taxAmount,
-	}
+	// Update invoice totals
+	invoice.Subtotal = subtotal
+	invoice.TaxAmount = taxAmount
+	invoice.Total = subtotal + taxAmount
 
-	if err := ic.DB.Create(&invoice).Error; err != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": "Could not save invoice: " + err.Error(),
+	if err := ic.DB.Save(&invoice).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Could not update invoice: " + err.Error(),
 		})
 		return
 	}
 
-	for _, item := range items {
-		invoiceItem := models.InvoiceItem{
-			InvoiceID:       invoice.ID,
-			ItemID:          item.ItemID,
-			Quantity:        item.Quantity,
-			Price:           item.Price,
-			DependentCosts:  item.DependentCosts,
-			PriceDifference: item.PriceDifference,
-			Value:           item.ValueWithoutVat,
-			ValueWithoutVat: item.ValueWithoutVat,
-			VatRate:         item.VatRate,
-			VatAmount:       item.VatAmount,
-			ValueWithVat:    item.ValueWithVat,
-			UnitPrice:       item.UnitPrice,
-			Note:            item.Note,
-		}
-
-		if err := ic.DB.Create(&invoiceItem).Error; err != nil {
-			c.HTML(http.StatusOK, "error.tmpl", gin.H{
-				"error": "Could not save invoice item: " + err.Error(),
-			})
-			return
-		}
-	}
-
-	c.String(http.StatusOK, `<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
-		<strong>Uspesno sacuvano</strong>
-	</div>`)
+	// Redirect to the view page
+	c.Redirect(http.StatusFound, fmt.Sprintf("/invoices/%d/view", invoiceIDInt))
 }
 
+// GetInvoiceDetails shows the view page for an invoice
 func (ic *InvoiceController) GetInvoiceDetails(c *gin.Context) {
 	id := c.Param("id")
 
@@ -240,21 +390,9 @@ func (ic *InvoiceController) GetInvoiceDetails(c *gin.Context) {
 	for i, lineItem := range invoice.LineItems {
 		var item models.Item
 		if err := ic.DB.First(&item, lineItem.ItemID).Error; err == nil {
-			invoice.LineItems[i].Note = item.Name // Store item name in note field for display
+			invoice.LineItems[i].Note = item.Name // Store item name for display
 		}
 	}
-
-	// Calculate totals
-	var subtotal float64
-	var taxAmount float64
-	for _, item := range invoice.LineItems {
-		subtotal += item.ValueWithoutVat
-		taxAmount += item.VatAmount
-	}
-
-	invoice.Subtotal = subtotal
-	invoice.TaxAmount = taxAmount
-	invoice.Total = subtotal + taxAmount
 
 	c.HTML(http.StatusOK, "invoice-details.html", gin.H{
 		"Invoice": invoice,

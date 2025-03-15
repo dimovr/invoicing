@@ -63,8 +63,12 @@ func setupRoutes(router *gin.Engine, db *gorm.DB) {
 	// Initialize controllers
 	invoiceController := handlers.NewInvoiceController(db)
 
-	// Invoice routes
 	router.GET("/invoices", invoiceController.GetInvoices)
-	router.GET("/invoices/create", invoiceController.GetInvoiceForm)
-	router.POST("/api/invoices", invoiceController.SaveInvoice)
+	router.POST("/invoices/initialize", invoiceController.InitializeInvoice)
+	// router.GET("/invoices/:id", invoiceController.GetInvoiceEditPage)
+	router.POST("/invoices/:id/add-item", invoiceController.AddLineItem)
+	router.DELETE("/invoices/:id/items/:item_id", invoiceController.RemoveLineItem)
+	router.POST("/invoices/:id/complete", invoiceController.CompleteInvoice)
+	router.GET("/invoices/:id/view", invoiceController.GetInvoiceDetails)
+	router.DELETE("/invoices/:id", invoiceController.DeleteInvoice)
 }
