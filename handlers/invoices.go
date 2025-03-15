@@ -154,7 +154,6 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 		return
 	}
 
-	// Check if item exists for invoiceid if yes return
 	var existingItem models.InvoiceItem
 	if err := ic.DB.Where("invoice_id = ? AND item_id = ?", invoiceIDInt, itemID).First(&existingItem).Error; err == nil {
 		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
@@ -184,7 +183,6 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 		discount = 0
 	}
 
-	// Get item details
 	var item models.Item
 	if err := ic.DB.First(&item, itemID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
@@ -265,6 +263,13 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 	if err := ic.DB.Preload("LineItems").First(&invoice, invoiceID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
 			"error": "Invoice not found",
+		})
+		return
+	}
+
+	if len(invoice.LineItems) == 0 {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Invoice has no items",
 		})
 		return
 	}
