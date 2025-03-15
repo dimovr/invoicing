@@ -62,16 +62,15 @@ func (ic *InvoiceController) GetInvoices(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "invoices.html", gin.H{
+	c.HTML(http.StatusOK, "index.html", gin.H{
 		"invoices":  invoices,
-		"Suppliers": suppliers,
+		"suppliers": suppliers,
 		"TodayDate": time.Now().Format("2006-01-02"),
 		"active":    "invoices",
 		"Title":     "Invoices",
 	})
 }
 
-// InitializeInvoice creates a new invoice with basic info and redirects to the edit page
 func (ic *InvoiceController) InitializeInvoice(c *gin.Context) {
 	supplierID, err := strconv.Atoi(c.PostForm("supplier_id"))
 	if err != nil || supplierID == 0 {
@@ -89,7 +88,6 @@ func (ic *InvoiceController) InitializeInvoice(c *gin.Context) {
 		return
 	}
 
-	// Parse date
 	dateStr := c.PostForm("date")
 	var invoiceDate time.Time
 	if dateStr != "" {
@@ -416,5 +414,5 @@ func (ic *InvoiceController) DeleteInvoice(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.String(http.StatusOK, "")
 }

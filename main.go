@@ -65,7 +65,6 @@ func setupRoutes(router *gin.Engine, db *gorm.DB) {
 
 	router.GET("/invoices", invoiceController.GetInvoices)
 	router.POST("/invoices/initialize", invoiceController.InitializeInvoice)
-	// router.GET("/invoices/:id", invoiceController.GetInvoiceEditPage)
 	router.POST("/invoices/:id/add-item", invoiceController.AddLineItem)
 	router.DELETE("/invoices/:id/items/:item_id", invoiceController.RemoveLineItem)
 	router.POST("/invoices/:id/complete", invoiceController.CompleteInvoice)
