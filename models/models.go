@@ -40,18 +40,18 @@ type Invoice struct {
 	SupplierID     uint          `gorm:"not null" json:"supplier_id"`
 	Supplier       Supplier      `gorm:"foreignKey:SupplierID" json:"supplier"`
 	LineItems      []InvoiceItem `gorm:"foreignKey:InvoiceID" json:"line_items"`
-	Subtotal       float64       `json:"subtotal"`   // Calculated: Sum of item prices * quantitys
-	TaxAmount      float64       `json:"tax_amount"` // Calculated: Sum of (item price * quantity * tax_rate)
-	Total          float64       `json:"total"`      // Calculated: Subtotal + TaxAmount
+	Subtotal       float64       `json:"subtotal"`
+	TaxAmount      float64       `json:"tax_amount"`
+	Total          float64       `json:"total"`
 	Date           time.Time     `json:"date"`
 	DocumentNumber string        `json:"document_number"`
 }
 
 type InvoiceItem struct {
-	ItemID          uint    `json:"item_id gorm:"uniqueIndex:idx_invoice_item"`
+	ItemID          uint    `json:"item_id" gorm:"uniqueIndex:idx_invoice_item"` // Part of unique constraint
 	Name            string  `json:"name"`
 	Unit            string  `json:"unit"`
-	InvoiceID       uint    `json:"invoice_id" gorm:"uniqueIndex:idx_invoice_item"`
+	InvoiceID       uint    `json:"invoice_id" gorm:"uniqueIndex:idx_invoice_item"` // Part of unique constraint
 	Quantity        float64 `json:"quantity"`
 	Price           float64 `json:"price"`
 	DependentCosts  float64 `json:"dependent_costs"`

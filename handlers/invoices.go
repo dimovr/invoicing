@@ -41,7 +41,7 @@ func (ic *InvoiceHandler) GetInvoices(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"invoices":  invoices,
 		"suppliers": suppliers,
-		"TodayDate": time.Now().Format("02.01.2006"),
+		"TodayDate": time.Now().Format("2006-01-02"),
 		"active":    "invoices",
 		"Title":     "Invoices",
 	})
@@ -158,7 +158,7 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	var existingItem models.InvoiceItem
 	if err := ic.DB.Where("invoice_id = ? AND item_id = ?", invoiceIDInt, itemID).First(&existingItem).Error; err == nil {
 		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
-			"error": "Proizvod je već dodat",
+			"error": "Item already added to invoice",
 		})
 		return
 	}
