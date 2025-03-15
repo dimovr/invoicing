@@ -1,10 +1,11 @@
 <tr id="invoice-{{.ID}}">
     <td>{{.ID}}</td>
-    <td>{{.Supplier.Name}}</td>
-    <td>{{.Supplier.Address}}</td>
-    <td>${{printf "%.2f" .Subtotal}}</td>
-    <td>${{printf "%.2f" .TaxAmount}}</td>
-    <td>${{printf "%.2f" .Total}}</td>
+    <td>{{.Supplier.Name}} - {{.Supplier.Code}} / {{.Supplier.Address}}</td>
+    <td>{{.DocumentNumber}}</td>
+    <td>{{.Date.Format "02.01.2006"}}</td>
+    <td>{{printf "%.2f" .Subtotal}}</td>
+    <td>{{printf "%.2f" .TaxAmount}}</td>
+    <td>{{printf "%.2f" .Total}}</td>
     <td class="text-end">
         <a href="/invoices/{{.ID}}/view" class="btn py-1 px-2 text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded mr-2">
             <i class="bi bi-eye"></i>

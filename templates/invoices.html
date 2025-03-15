@@ -1,7 +1,6 @@
 <div id="invoiceView" class="container mx-auto px-4">
 
     <form id="invoiceForm" action="/invoices/initialize" method="POST">
-    <!-- <form id="invoiceForm" hx-post="/invoices/initialize"> -->
         <div class="input-group">
             <select id="supplier" name="supplier_id" class="form-control" required>
                 <option value="">Izaberite dobavljača</option>
@@ -23,13 +22,12 @@
                 <tr>
                     <th>ID</th>
                     <th>Supplier</th>
-                    <th>Address</th>
-                    <th>Document #</th>
+                    <th>#</th>
                     <th>Date</th>
                     <th>Subtotal</th>
                     <th>Tax Amount</th>
                     <th>Total</th>
-                    <th>Actions</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>

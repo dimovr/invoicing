@@ -140,7 +140,7 @@ func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "invoice-edit-form.html", gin.H{
+	c.HTML(http.StatusOK, "invoice-form.html", gin.H{
 		"Invoice": invoice,
 		"Items":   items,
 		"active":  "invoices",
@@ -292,22 +292,6 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 		valueWithoutDiscount := item.Price * item.Quantity
 		valueWithDiscount := valueWithoutDiscount * (1 - item.PriceDifference/100)
 		vatAmount := valueWithDiscount * (item.VatRate / 100)
-
-		// Update the line item
-		item.Value = valueWithDiscount
-		item.ValueWithoutVat = valueWithDiscount
-		item.VatAmount = vatAmount
-		item.ValueWithVat = valueWithDiscount + vatAmount
-
-		fmt.Println(item)
-
-		// if err := ic.DB.Save(&item).Error; err != nil {
-		// 	fmt.Println(err)
-		// 	c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-		// 		"error": "Could not update line item: " + err.Error(),
-		// 	})
-		// 	return
-		// }
 
 		subtotal += valueWithDiscount
 		taxAmount += vatAmount
