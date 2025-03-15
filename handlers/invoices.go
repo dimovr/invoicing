@@ -68,7 +68,8 @@ func (ic *InvoiceHandler) InitializeInvoice(c *gin.Context) {
 	var invoiceDate time.Time
 	if dateStr != "" {
 		var err error
-		invoiceDate, err = time.Parse("02.01.2006", dateStr)
+		fmt.Println("dateStr:", dateStr)
+		invoiceDate, err = time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			invoiceDate = time.Now()
 		}
@@ -124,8 +125,6 @@ func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context) {
 		})
 		return
 	}
-
-	fmt.Println(len(invoice.LineItems))
 
 	c.HTML(http.StatusOK, "invoice-form.html", gin.H{
 		"Invoice": invoice,
@@ -192,25 +191,32 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	}
 
 	// Calculate values
-	valueWithoutDiscount := price * quantity
-	valueWithDiscount := valueWithoutDiscount * (1 - discount/100)
-	vatAmount := valueWithDiscount * (float64(item.TaxRate) / 100)
+	buyingPrice := price * (1 - discount/100)
+	buyingValue := buyingPrice * quantity
+	sellingPrice := item.Price
+	sellingValue := sellingPrice * quantity
+	vatAmount := sellingValue * (float64(item.TaxRate) / 100)
+
+	fmt.Println("buying price:", buyingPrice)
+	fmt.Println("selling price:", sellingPrice)
+	fmt.Println("vat amount:", vatAmount)
+	fmt.Println("selling value:", sellingValue)
+	fmt.Println("buying value:", buyingValue)
 
 	// Create the invoice item
 	invoiceItem := models.InvoiceItem{
-		ItemID:          uint(itemID),
-		Name:            item.Name,
-		Unit:            item.Unit,
-		InvoiceID:       uint(invoiceIDInt),
-		Quantity:        quantity,
-		Price:           price,
-		PriceDifference: discount,
-		Value:           valueWithDiscount,
-		ValueWithoutVat: valueWithDiscount,
-		VatRate:         float64(item.TaxRate),
-		VatAmount:       vatAmount,
-		ValueWithVat:    valueWithDiscount + vatAmount,
-		UnitPrice:       price,
+		InvoiceID:    uint(invoiceIDInt),
+		ItemID:       uint(itemID),
+		Name:         item.Name,
+		Unit:         item.Unit,
+		TaxRate:      float64(item.TaxRate),
+		Discount:     discount,
+		Quantity:     quantity,
+		BuyingPrice:  buyingPrice,
+		Subtotal:     buyingValue,
+		TaxAmount:    vatAmount,
+		SellingPrice: sellingPrice,
+		Total:        sellingValue,
 	}
 
 	if err := ic.DB.Create(&invoiceItem).Error; err != nil {
@@ -240,13 +246,7 @@ func (ic *InvoiceHandler) RemoveLineItem(c *gin.Context) {
 	var count int64
 	ic.DB.Model(&models.InvoiceItem{}).Where("invoice_id = ?", invoiceID).Count(&count)
 
-	if count == 0 {
-		// If no items left, return the "no items" row
-		c.HTML(http.StatusOK, "invoice-line-item-empty.html", nil)
-	} else {
-		// Return empty response (the row will be removed by HTMX)
-		c.Status(http.StatusOK)
-	}
+	c.Status(http.StatusOK)
 }
 
 func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
@@ -274,26 +274,15 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 		return
 	}
 
-	// Calculate totals
-	var subtotal float64
-	var taxAmount float64
+	invoice.Subtotal = 0
+	invoice.TaxAmount = 0
+	invoice.Total = 0
 
 	for _, item := range invoice.LineItems {
-		// Calculate item values based on discount
-		valueWithoutDiscount := item.Price * item.Quantity
-		valueWithDiscount := valueWithoutDiscount * (1 - item.PriceDifference/100)
-		vatAmount := valueWithDiscount * (item.VatRate / 100)
-
-		subtotal += valueWithDiscount
-		taxAmount += vatAmount
+		invoice.Subtotal += item.Subtotal
+		invoice.TaxAmount += item.TaxAmount
+		invoice.Total += item.Total
 	}
-
-	// Update invoice totals
-	invoice.Subtotal = subtotal
-	invoice.TaxAmount = taxAmount
-	invoice.Total = subtotal + taxAmount
-
-	fmt.Println("Before save:", len(invoice.LineItems))
 
 	if err := ic.DB.Save(&invoice).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -301,7 +290,6 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("After save:", len(invoice.LineItems))
 
 	// Redirect to the view page
 	c.Redirect(http.StatusFound, fmt.Sprintf("/invoices/%d/view", invoiceIDInt))
@@ -327,7 +315,7 @@ func (ic *InvoiceHandler) GetInvoiceDetails(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
+	c.HTML(http.StatusOK, "invoice-full.html", gin.H{
 		"Invoice":   invoice,
 		"Company":   company,
 		"TodayDate": time.Now().Format("02.01.2006"),

@@ -1,7 +1,7 @@
 <tr id="invoice-{{.ID}}">
     <td>{{.ID}}</td>
-    <td>{{.Supplier.Name}} - {{.Supplier.Code}} / {{.Supplier.Address}}</td>
     <td>{{.DocumentNumber}}</td>
+    <td>{{.Supplier.Name}} - {{.Supplier.Code}} / {{.Supplier.Address}}</td>
     <td>{{.Date.Format "02.01.2006"}}</td>
     <td>{{printf "%.2f" .Subtotal}}</td>
     <td>{{printf "%.2f" .TaxAmount}}</td>

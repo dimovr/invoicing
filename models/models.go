@@ -48,19 +48,17 @@ type Invoice struct {
 }
 
 type InvoiceItem struct {
-	ItemID          uint    `json:"item_id" gorm:"uniqueIndex:idx_invoice_item"` // Part of unique constraint
-	Name            string  `json:"name"`
-	Unit            string  `json:"unit"`
-	InvoiceID       uint    `json:"invoice_id" gorm:"uniqueIndex:idx_invoice_item"` // Part of unique constraint
-	Quantity        float64 `json:"quantity"`
-	Price           float64 `json:"price"`
-	DependentCosts  float64 `json:"dependent_costs"`
-	PriceDifference float64 `json:"price_difference"`
-	Value           float64 `json:"value"`
-	ValueWithoutVat float64 `json:"value_without_vat"`
-	VatRate         float64 `json:"vat_rate"`
-	VatAmount       float64 `json:"vat_amount"`
-	ValueWithVat    float64 `json:"value_with_vat"`
-	UnitPrice       float64 `json:"unit_price"`
-	Note            string  `json:"note"`
+	InvoiceID    uint    `json:"invoice_id" gorm:"uniqueIndex:idx_invoice_item"` // Part of unique constraint
+	ItemID       uint    `json:"item_id" gorm:"uniqueIndex:idx_invoice_item"`    // Part of unique constraint
+	Name         string  `json:"name"`
+	Unit         string  `json:"unit"`
+	TaxRate      float64 `json:"tax_rate"`
+	Discount     float64 `json:"discount"`
+	Quantity     float64 `json:"quantity"`
+	BuyingPrice  float64 `json:"buying_price"`
+	Subtotal     float64 `json:"subtotal"`
+	TaxAmount    float64 `json:"tax_amount"`
+	SellingPrice float64 `json:"selling_price"`
+	Total        float64 `json:"total"`
+	Note         string  `json:"note"`
 }

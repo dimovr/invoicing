@@ -168,7 +168,7 @@ func taxRateToVAT(rate int) string {
 	}
 }
 
-func csv_main() {
+func main_csv() {
 	inputFile := "artikli.csv"
 	products, err := ReadProductsFromCSV(inputFile)
 	if err != nil {
@@ -177,7 +177,7 @@ func csv_main() {
 	}
 
 	for _, p := range products {
-		fmt.Printf("ID: %d, Name: %s, TaxRate: %d, Price: %d\n",
+		fmt.Printf("ID: %d, Naziv: %s, PDV: %d, Cena: %d\n",
 			p.ID, p.Name, p.TaxRate, p.Price)
 	}
 
