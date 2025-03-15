@@ -1,9 +1,9 @@
 package main
 
 import (
+	"invoicing-item-app/handlers"
+	"invoicing-item-app/models"
 	"text/template"
-	"todo-item-app/handlers"
-	"todo-item-app/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"

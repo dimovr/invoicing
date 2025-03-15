@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"todo-item-app/models"
+	"invoicing-item-app/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -123,7 +123,7 @@ func (ic *InvoiceController) SaveInvoice(c *gin.Context) {
 	var items []models.InvoiceItem
 	itemsJSON := c.PostForm("items_json")
 	if err := json.Unmarshal([]byte(itemsJSON), &items); err != nil {
-		fmt.Println("Greska tokom obrade artikala:", err)
+		fmt.Println("Error processing items:", err)
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
 			"error": "Greska tokom obrade artikala",
 		})

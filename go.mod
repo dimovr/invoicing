@@ -1,4 +1,4 @@
-module todo-item-app
+module invoicing-item-app
 
 go 1.23.5
 

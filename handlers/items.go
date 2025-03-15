@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"todo-item-app/models" // Adjust this import path based on your module name
+	"invoicing-item-app/models" // Adjust this import path based on your module name
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

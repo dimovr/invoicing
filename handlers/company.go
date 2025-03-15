@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"invoicing-item-app/models"
 	"net/http"
-	"todo-item-app/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
