@@ -108,28 +108,19 @@ func (ic *InvoiceHandler) InitializeInvoice(c *gin.Context) {
 		return
 	}
 
-	// Redirect to the invoice edit page
-	ic.GetInvoiceEditPage(c, invoice.ID)
+	// Redirect to the invoice edit page instead of rendering directly
+	c.Redirect(http.StatusFound, fmt.Sprintf("/invoices/%d/edit", invoice.ID))
 }
 
 // GetInvoiceEditPage loads the invoice edit page
-func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context, invoiceID ...uint) {
-	var id uint
-
-	// Check if we're being called with an ID parameter
-	if len(invoiceID) > 0 {
-		id = invoiceID[0]
-	} else {
-		// Otherwise, get it from the URL parameter
-		idParam := c.Param("id")
-		idInt, err := strconv.Atoi(idParam)
-		if err != nil {
-			c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
-				"error": "Invalid invoice ID",
-			})
-			return
-		}
-		id = uint(idInt)
+func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context) {
+	invoiceID := c.Param("id")
+	id, err := strconv.Atoi(invoiceID)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
+			"error": "Invalid invoice ID",
+		})
+		return
 	}
 
 	var invoice models.Invoice
@@ -138,14 +129,6 @@ func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context, invoiceID ...uint) 
 			"error": "Invoice not found",
 		})
 		return
-	}
-
-	// Get item details for each line item
-	for i, lineItem := range invoice.LineItems {
-		var item models.Item
-		if err := ic.DB.First(&item, lineItem.ItemID).Error; err == nil {
-			invoice.LineItems[i].Note = item.Name // Store item name for display
-		}
 	}
 
 	// Load all available items
@@ -165,7 +148,6 @@ func (ic *InvoiceHandler) GetInvoiceEditPage(c *gin.Context, invoiceID ...uint) 
 	})
 }
 
-// AddLineItem adds an item to an invoice
 func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	invoiceID := c.Param("id")
 	invoiceIDInt, err := strconv.Atoi(invoiceID)
@@ -181,6 +163,15 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	if err != nil || itemID == 0 {
 		c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{
 			"error": "Please select an item",
+		})
+		return
+	}
+
+	// check if item exists for invoiceid if yes return
+	var existingItem models.InvoiceItem
+	if err := ic.DB.Where("invoice_id = ? AND item_id = ?", invoiceIDInt, itemID).First(&existingItem).Error; err == nil {
+		c.HTML(http.StatusOK, "invoice-line-item.html", gin.H{
+			"LineItem": existingItem,
 		})
 		return
 	}
@@ -223,6 +214,7 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	// Create the invoice item
 	invoiceItem := models.InvoiceItem{
 		ItemID:          uint(itemID),
+		Name:            item.Name,
 		InvoiceID:       uint(invoiceIDInt),
 		Quantity:        quantity,
 		Price:           price,
@@ -233,7 +225,6 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 		VatAmount:       vatAmount,
 		ValueWithVat:    valueWithDiscount + vatAmount,
 		UnitPrice:       price,
-		Note:            item.Name,
 	}
 
 	if err := ic.DB.Create(&invoiceItem).Error; err != nil {
@@ -243,37 +234,8 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 		return
 	}
 
-	// Prepare data for the line item template
-	lineItemData := struct {
-		ItemID     uint
-		InvoiceID  uint
-		ItemName   string
-		Price      string
-		Quantity   string
-		Discount   string
-		Value      string
-		VatAmount  string
-		TotalValue string
-	}{
-		ItemID:     uint(itemID),
-		InvoiceID:  uint(invoiceIDInt),
-		ItemName:   item.Name,
-		Price:      fmt.Sprintf("%.2f", price),
-		Quantity:   fmt.Sprintf("%.2f", quantity),
-		Discount:   fmt.Sprintf("%.2f", discount),
-		Value:      fmt.Sprintf("%.2f", valueWithDiscount),
-		VatAmount:  fmt.Sprintf("%.2f", vatAmount),
-		TotalValue: fmt.Sprintf("%.2f", valueWithDiscount+vatAmount),
-	}
-
-	fmt.Println(lineItemData)
-
 	// Render the line item template
-	c.HTML(http.StatusOK, "invoice-line-item.html", gin.H{
-		"InvoiceID": invoiceIDInt,
-		"ItemID":    uint(itemID),
-		"LineItem":  lineItemData,
-	})
+	c.HTML(http.StatusOK, "invoice-line-item.html", invoiceItem)
 }
 
 // RemoveLineItem removes an item from an invoice
@@ -383,13 +345,13 @@ func (ic *InvoiceHandler) GetInvoiceDetails(c *gin.Context) {
 		return
 	}
 
-	// Get item details for each line item
-	for i, lineItem := range invoice.LineItems {
-		var item models.Item
-		if err := ic.DB.First(&item, lineItem.ItemID).Error; err == nil {
-			invoice.LineItems[i].Note = item.Name // Store item name for display
-		}
-	}
+	// // Get item details for each line item
+	// for i, lineItem := range invoice.LineItems {
+	// 	var item models.Item
+	// 	if err := ic.DB.First(&item, lineItem.ItemID).Error; err == nil {
+	// 		invoice.LineItems[i].Note = item.Name // Store item name for display
+	// 	}
+	// }
 
 	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
 		"Invoice": invoice,

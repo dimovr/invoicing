@@ -1,19 +1,19 @@
 <!-- invoice-line-item.html -->
 <tr class="line-item" data-id="{{.ItemID}}">
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm font-medium text-gray-900">{{.LineItem.ItemName}}</div>
+        <div class="text-sm font-medium text-gray-900">{{.Name}}</div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <span class="text-sm text-gray-900">${{.LineItem.Price}}</span>
+        <span class="text-sm text-gray-900">{{.Price}}</span>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <span class="text-sm text-gray-900">{{.LineItem.Quantity}}</span>
+        <span class="text-sm text-gray-900">{{.Quantity}}</span>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <span class="text-sm text-gray-900">{{.LineItem.Discount}}%</span>
+        <span class="text-sm text-gray-900">{{.PriceDifference}}%</span>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <span class="text-sm text-gray-900">${{.LineItem.Value}}</span>
+        <span class="text-sm text-gray-900">{{.Value}}</span>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <button type="button" hx-delete="/invoices/{{.InvoiceID}}/items/{{.ItemID}}" hx-target="closest tr" hx-swap="outerHTML" class="text-red-600 hover:text-red-900">

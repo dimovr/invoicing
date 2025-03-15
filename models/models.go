@@ -49,6 +49,7 @@ type Invoice struct {
 
 type InvoiceItem struct {
 	ItemID          uint    `json:"item_id"`
+	Name            string  `json:"name"`
 	InvoiceID       uint    `json:"invoice_id"`
 	Quantity        float64 `json:"quantity"`
 	Price           float64 `json:"price"`
