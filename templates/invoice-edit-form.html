@@ -12,7 +12,7 @@
                     <div class="col-span-2">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="item_id">Item</label>
                         <select id="item_id" name="item_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                            <option value="">-- Select Item --</option>
+                            <option value="">-- Proizvod --</option>
                             {{range .Items}}
                                 <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}">{{.Name}} - {{.Unit}}</option>
                             {{end}}
@@ -20,11 +20,11 @@
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="buy_price">Buy Price</label>
-                        <input type="number" id="buy_price" name="price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0" required>
+                        <input type="number" id="buy_price" name="price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="1" required>
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">Quantity</label>
-                        <input type="number" id="quantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="1" step="0.01" min="0.01" required>
+                        <input type="number" id="quantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="1" step="1" min="1" required>
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="discount">Discount %</label>
@@ -33,7 +33,7 @@
                 </div>
                 <div class="mt-2 flex justify-end">
                     <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                        <i class="bi bi-plus"></i> Add Item
+                        <i class="bi bi-plus"></i>
                     </button>
                 </div>
             </form>
@@ -52,15 +52,9 @@
                     </tr>
                 </thead>
                 <tbody id="line-items" class="bg-white divide-y divide-gray-200">
-                    <!-- {{if len .Invoice.LineItems}} -->
-                        {{range .Invoice.LineItems}}
-                            {{template "invoice-line-item.html" .}}
-                        {{end}}
-                    <!-- {{else}}
-                        <tr id="no-items">
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">No items added yet</td>
-                        </tr>
-                    {{end}} -->
+                    {{range .Invoice.LineItems}}
+                        {{template "invoice-line-item.html" .}}
+                    {{end}}
                 </tbody>
                 <tfoot class="bg-gray-50">
                     <tr>

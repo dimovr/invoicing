@@ -166,7 +166,7 @@ func (ic *InvoiceController) GetInvoiceEditPage(c *gin.Context, invoiceID ...uin
 		return
 	}
 
-	c.HTML(http.StatusOK, "invoice-edit.html", gin.H{
+	c.HTML(http.StatusOK, "invoice-edit-form.html", gin.H{
 		"Invoice": invoice,
 		"Items":   items,
 		"active":  "invoices",
@@ -376,6 +376,14 @@ func (ic *InvoiceController) CompleteInvoice(c *gin.Context) {
 func (ic *InvoiceController) GetInvoiceDetails(c *gin.Context) {
 	id := c.Param("id")
 
+	var company models.Company
+	if err := ic.DB.First(&company).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Could not load company: " + err.Error(),
+		})
+		return
+	}
+
 	var invoice models.Invoice
 	if err := ic.DB.Preload("Supplier").Preload("LineItems").First(&invoice, id).Error; err != nil {
 		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
@@ -392,8 +400,9 @@ func (ic *InvoiceController) GetInvoiceDetails(c *gin.Context) {
 		}
 	}
 
-	c.HTML(http.StatusOK, "invoice-details.html", gin.H{
+	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
 		"Invoice": invoice,
+		"Company": company,
 		"active":  "invoices",
 		"Title":   "Invoice Details",
 	})
