@@ -167,11 +167,11 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 		return
 	}
 
-	// check if item exists for invoiceid if yes return
+	// Check if item exists for invoiceid if yes return
 	var existingItem models.InvoiceItem
 	if err := ic.DB.Where("invoice_id = ? AND item_id = ?", invoiceIDInt, itemID).First(&existingItem).Error; err == nil {
-		c.HTML(http.StatusOK, "invoice-line-item.html", gin.H{
-			"LineItem": existingItem,
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": "Proizvod je vec dodat",
 		})
 		return
 	}
@@ -344,14 +344,6 @@ func (ic *InvoiceHandler) GetInvoiceDetails(c *gin.Context) {
 		})
 		return
 	}
-
-	// // Get item details for each line item
-	// for i, lineItem := range invoice.LineItems {
-	// 	var item models.Item
-	// 	if err := ic.DB.First(&item, lineItem.ItemID).Error; err == nil {
-	// 		invoice.LineItems[i].Note = item.Name // Store item name for display
-	// 	}
-	// }
 
 	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
 		"Invoice": invoice,

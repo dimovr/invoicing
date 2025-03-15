@@ -91,6 +91,9 @@
             </div>
         </div>
 
+        <div id="item-error-message"></div>
+        <div id="error-container"></div>
+
         <button id="complete-invoice" hx-post="/invoices/{{.Invoice.ID}}/complete" hx-target="closest div" hx-swap="outerHTML" class="text-green-600 hover:text-green-900">
             <i class="bi bi-check"></i>
         </button>
