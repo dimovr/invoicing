@@ -41,7 +41,7 @@ func (ic *InvoiceHandler) GetInvoices(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"invoices":  invoices,
 		"suppliers": suppliers,
-		"TodayDate": time.Now().Format("2006-01-02"),
+		"TodayDate": time.Now().Format("02.01.2006"),
 		"active":    "invoices",
 		"Title":     "Invoices",
 	})
@@ -68,7 +68,7 @@ func (ic *InvoiceHandler) InitializeInvoice(c *gin.Context) {
 	var invoiceDate time.Time
 	if dateStr != "" {
 		var err error
-		invoiceDate, err = time.Parse("2006-01-02", dateStr)
+		invoiceDate, err = time.Parse("02.01.2006", dateStr)
 		if err != nil {
 			invoiceDate = time.Now()
 		}
@@ -251,7 +251,6 @@ func (ic *InvoiceHandler) RemoveLineItem(c *gin.Context) {
 	}
 }
 
-// CompleteInvoice finalizes an invoice and redirects to the view page
 func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 	invoiceID := c.Param("id")
 	invoiceIDInt, err := strconv.Atoi(invoiceID)
@@ -289,14 +288,15 @@ func (ic *InvoiceHandler) CompleteInvoice(c *gin.Context) {
 	invoice.TaxAmount = taxAmount
 	invoice.Total = subtotal + taxAmount
 
+	fmt.Println("Before save:", len(invoice.LineItems))
+
 	if err := ic.DB.Save(&invoice).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
 			"error": "Could not update invoice: " + err.Error(),
 		})
 		return
 	}
-
-	fmt.Println(len(invoice.LineItems))
+	fmt.Println("After save:", len(invoice.LineItems))
 
 	// Redirect to the view page
 	c.Redirect(http.StatusFound, fmt.Sprintf("/invoices/%d/view", invoiceIDInt))
@@ -323,10 +323,11 @@ func (ic *InvoiceHandler) GetInvoiceDetails(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "kalkulacija.html", gin.H{
-		"Invoice": invoice,
-		"Company": company,
-		"active":  "invoices",
-		"Title":   "Invoice Details",
+		"Invoice":   invoice,
+		"Company":   company,
+		"TodayDate": time.Now().Format("02.01.2006"),
+		"active":    "invoices",
+		"Title":     "Invoice Details",
 	})
 }
 

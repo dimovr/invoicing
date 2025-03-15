@@ -10,53 +10,9 @@
         .table-bordered th, .table-bordered td {
             border: 1px solid #e2e8f0;
         }
-        /* Default styles for non-print */
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        @media print {
-            @page {
-                margin: 0;
-            }
-            /* Hide everything except kalkulacija */
-            body > *:not(#kalkulacija) {
-                display: none !important;
-            }
-            #kalkulacija {
-                display: block !important;
-                position: static; /* Changed from absolute to static for better flow */
-                width: 100%;
-                margin: 0;
-                padding: 10mm;
-                box-shadow: none;
-            }
-            #kalkulacija table {
-                width: 100%;
-                font-size: 10pt;
-                page-break-inside: avoid; /* Prevent table breaking across pages */
-            }
-            /* Ensure Tailwind classes don't interfere */
-            .container, .mx-auto, .my-8, .shadow-md {
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-            }
-        }
     </style>
 </head>
 <body class="bg-gray-100">
-
-    <!-- <nav class="bg-gray-800 py-4">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <div class="flex space-x-4">
-                <a href="/company" class="text-white hover:text-gray-300 {{if eq .active "company"}}font-bold border-b-2 border-white{{end}}">Company</a>
-                <a href="/items" class="text-white hover:text-gray-300 {{if eq .active "items"}}font-bold border-b-2 border-white{{end}}">Items</a>
-                <a href="/suppliers" class="text-white hover:text-gray-300 {{if eq .active "suppliers"}}font-bold border-b-2 border-white{{end}}">Suppliers</a>
-                <a href="/invoices" class="text-white hover:text-gray-300 {{if eq .active "invoices"}}font-bold border-b-2 border-white{{end}}">Invoices</a>
-            </div>
-        </div>
-    </nav> -->
 
     <div id="kalkulacija" class="container mx-auto px-4 p-4 bg-white shadow-md my-8">
         <!-- Header Section -->
@@ -75,7 +31,7 @@
                 <p class="text-sm mb-4"><b>isporučilac dobara: </b> 
                     {{ .Invoice.Supplier.Name }} - {{ .Invoice.Supplier.Code }} / {{ .Invoice.Supplier.Address}}
                 </p>
-                <p class="text-sm mb-4"><b>od</b> <span id="invoice-date">{{ .Invoice.Date.Format "02.01.2006" }}</span> <b>godine</b></p>
+                <p class="text-sm mb-4"><b>od</b> {{ .Invoice.Date.Format "02.01.2006" }} <b>godine</b></p>
             </div>
         </div>
 
@@ -164,11 +120,11 @@
         <!-- Footer Section -->
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <p class="text-sm"><b>Datum:</b> <span id="document-date">{{ .CurrentDate }}</span> godine</p>
-                <p class="text-sm"><b>Sastavio:</b> <span id="prepared-by">{{ .Company.User }}</span></p>
+                <p class="text-sm"><b>Datum:</b> {{.TodayDate}} godine</p>
+                <p class="text-sm"><b>Sastavio:</b> {{.Company.User}}</p>
             </div>
             <div class="text-right">
-                <p class="text-sm"><b>Odgovorno lice:</b> <span id="responsible-person">{{ .Company.Owner }}</span></p>
+                <p class="text-sm"><b>Odgovorno lice:</b> {{ .Company.Owner }}</p>
             </div>
         </div>
     </div>

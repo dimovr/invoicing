@@ -48,10 +48,10 @@ type Invoice struct {
 }
 
 type InvoiceItem struct {
-	ItemID          uint    `json:"item_id"`
+	ItemID          uint    `json:"item_id gorm:"uniqueIndex:idx_invoice_item"`
 	Name            string  `json:"name"`
 	Unit            string  `json:"unit"`
-	InvoiceID       uint    `json:"invoice_id"`
+	InvoiceID       uint    `json:"invoice_id" gorm:"uniqueIndex:idx_invoice_item"`
 	Quantity        float64 `json:"quantity"`
 	Price           float64 `json:"price"`
 	DependentCosts  float64 `json:"dependent_costs"`
