@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"invoicing-item-app/handlers"
 	"invoicing-item-app/models"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
@@ -14,14 +16,8 @@ func main() {
 	db := initDb()
 
 	r := gin.Default()
-	funcMap := template.FuncMap{
-		"add": func(a, b int) int {
-			return a + b
-		},
-	}
-	// Load templates with the custom function map
-	r.SetFuncMap(funcMap)
-	r.LoadHTMLGlob("templates/*")
+
+	setupTemplates(r)
 
 	companyHandler := handlers.NewCompanyHandler(db)
 	r.GET("/company", companyHandler.GetCompany)
@@ -65,4 +61,22 @@ func initDb() *gorm.DB {
 	}
 	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
 	return db
+}
+
+func setupTemplates(r *gin.Engine) {
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+	}
+
+	execPath, err := os.Executable()
+	if err != nil {
+		panic("failed to get executable path: " + err.Error())
+	}
+	execDir := filepath.Dir(execPath)
+	templatePath := filepath.Join(execDir, "templates", "*")
+
+	r.SetFuncMap(funcMap)
+	r.LoadHTMLGlob(templatePath)
 }

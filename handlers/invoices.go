@@ -195,7 +195,7 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	buyingValue := buyingPrice * quantity
 	sellingPrice := item.Price
 	sellingValue := sellingPrice * quantity
-	vatAmount := sellingValue * (float64(item.TaxRate) / 100)
+	vatAmount := sellingValue * (float64(item.TaxRate) / float64(100+item.TaxRate))
 
 	fmt.Println("buying price:", buyingPrice)
 	fmt.Println("selling price:", sellingPrice)
