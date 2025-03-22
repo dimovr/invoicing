@@ -197,14 +197,9 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 	sellingPrice := item.Price
 	sellingPriceWithTax := sellingPrice
 	sellingTotal := sellingPriceWithTax * quantity
-	taxAmount := sellingTotal * (float64(item.TaxRate) / float64(100+item.TaxRate))
 
-	fmt.Println("buying price:", buyingPrice)
-	fmt.Println("buying price with tax:", buyingPriceWithTax)
-	fmt.Println("selling price:", sellingPrice)
-	fmt.Println("tax amount:", taxAmount)
-	fmt.Println("selling value:", sellingTotal)
-	fmt.Println("buying value:", buyingSubtotal)
+	pc := float64(100*item.TaxRate) / float64(100+item.TaxRate) / 100
+	taxAmount := sellingTotal * pc
 
 	// Create the invoice item
 	invoiceItem := models.InvoiceItem{
