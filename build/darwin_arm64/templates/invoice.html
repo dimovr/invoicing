@@ -1,0 +1,23 @@
+<tr id="invoice-{{.ID}}">
+    <td>{{.ID}}</td>
+    <td>{{.DocumentNumber}}</td>
+    <td>{{.Supplier.Name}} - {{.Supplier.Code}} / {{.Supplier.Address}}</td>
+    <td>{{.Date.Format "02.01.2006"}}</td>
+    <td>{{printf "%.2f" .Subtotal}}</td>
+    <td>{{printf "%.2f" .TaxAmount}}</td>
+    <td>{{printf "%.2f" .Total}}</td>
+    <td class="text-end">
+        <a href="/invoices/{{.ID}}/view" class="btn py-1 px-2 text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded mr-2">
+            <i class="bi bi-eye"></i>
+        </a>
+        <button class="btn py-1 px-2 text-sm bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded"
+                hx-delete="/invoices/{{.ID}}"
+                hx-target="#invoice-{{.ID}}"
+                hx-swap="outerHTML"
+                hx-confirm="Jeste li sigurni?">
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>
+
+<div id="invoice-view"></div>

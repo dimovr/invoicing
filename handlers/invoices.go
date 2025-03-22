@@ -192,16 +192,19 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 
 	// Calculate values
 	buyingPrice := price * (1 - discount/100)
-	buyingValue := buyingPrice * quantity
+	buyingPriceWithTax := buyingPrice * (1 + float64(item.TaxRate)/100)
+	buyingSubtotal := buyingPriceWithTax * quantity
 	sellingPrice := item.Price
-	sellingValue := sellingPrice * quantity
-	vatAmount := sellingValue * (float64(item.TaxRate) / float64(100+item.TaxRate))
+	sellingPriceWithTax := sellingPrice
+	sellingTotal := sellingPriceWithTax * quantity
+	taxAmount := sellingTotal * (float64(item.TaxRate) / float64(100+item.TaxRate))
 
 	fmt.Println("buying price:", buyingPrice)
+	fmt.Println("buying price with tax:", buyingPriceWithTax)
 	fmt.Println("selling price:", sellingPrice)
-	fmt.Println("vat amount:", vatAmount)
-	fmt.Println("selling value:", sellingValue)
-	fmt.Println("buying value:", buyingValue)
+	fmt.Println("tax amount:", taxAmount)
+	fmt.Println("selling value:", sellingTotal)
+	fmt.Println("buying value:", buyingSubtotal)
 
 	// Create the invoice item
 	invoiceItem := models.InvoiceItem{
@@ -213,10 +216,10 @@ func (ic *InvoiceHandler) AddLineItem(c *gin.Context) {
 		Discount:     discount,
 		Quantity:     quantity,
 		BuyingPrice:  buyingPrice,
-		Subtotal:     buyingValue,
-		TaxAmount:    vatAmount,
+		Subtotal:     buyingSubtotal,
+		TaxAmount:    taxAmount,
 		SellingPrice: sellingPrice,
-		Total:        sellingValue,
+		Total:        sellingTotal,
 	}
 
 	if err := ic.DB.Create(&invoiceItem).Error; err != nil {

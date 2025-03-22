@@ -53,20 +53,19 @@ package: package-darwin package-windows ## Package for all platforms
 
 package-darwin: ## Package for macOS (Intel and Apple Silicon)
 	@echo "Packaging for macOS..."
-	@mkdir -p $(BUILD_DIR)/darwin_amd64
 	@mkdir -p $(BUILD_DIR)/darwin_arm64
 	
-	# Build for Intel Macs
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BUILD_DIR)/darwin_amd64/$(BINARY_NAME) -v
-	
-	# Build for Apple Silicon Macs
 	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BUILD_DIR)/darwin_arm64/$(BINARY_NAME) -v
+	
+	@cp -r templates $(BUILD_DIR)/darwin_arm64/
+	@cd $(BUILD_DIR) && zip -r $(BINARY_NAME)_$(VERSION)_darwin_arm64.zip darwin_arm64
+	@echo "macOS package created at $(BUILD_DIR)/$(BINARY_NAME)_$(VERSION)_darwin_arm64.zip"
 
 package-windows: ## Package for Windows
 	@echo "Packaging for Windows..."
-	@mkdir -p $(BUILD_DIR)/windows_amd64
-	
 	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BUILD_DIR)/windows_amd64/$(BINARY_NAME).exe -v
+	
+	@cp -r templates $(BUILD_DIR)/windows_amd64/
 	
 	@cd $(BUILD_DIR) && zip -r $(BINARY_NAME)_$(VERSION)_windows_amd64.zip windows_amd64
 	@echo "Windows package created at $(BUILD_DIR)/$(BINARY_NAME)_$(VERSION)_windows_amd64.zip"

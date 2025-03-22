@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"html/template"
 	"invoicing-item-app/handlers"
 	"invoicing-item-app/models"
@@ -62,9 +61,6 @@ func initDb() *gorm.DB {
 	return db
 }
 
-//go:embed templates/*
-var templatesFS embed.FS
-
 func setupTemplates(r *gin.Engine) {
 	funcMap := template.FuncMap{
 		"add": func(a, b int) int {
@@ -72,16 +68,6 @@ func setupTemplates(r *gin.Engine) {
 		},
 	}
 
-	templ := template.Must(template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*"))
-	r.SetHTMLTemplate(templ)
-
-	// execPath, err := os.Executable()
-	// if err != nil {
-	// 	panic("failed to get executable path: " + err.Error())
-	// }
-	// execDir := filepath.Dir(execPath)
-	// templatePath := filepath.Join(execDir, "templates", "*")
-
-	// r.SetFuncMap(funcMap)
-	// r.LoadHTMLGlob(templatePath)
+	r.SetFuncMap(funcMap)
+	r.LoadHTMLGlob("templates/*")
 }
