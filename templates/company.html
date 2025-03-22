@@ -2,7 +2,7 @@
     <form id="companyForm" hx-post="/company" hx-target="this" hx-swap="outerHTML">
         <div class="mb-4">
             <div class="input-group">
-                <span class="input-group-text">Ime</span>
+                <span class="input-group-text">Firma - radnja</span>
                 <input type="text" name="Name" id="Name" class="form-control" placeholder="Ime" value="{{.company.Name}}" required>
                 <span class="input-group-text">Adresa</span>
                 <input type="text" name="Address" id="Address" class="form-control" placeholder="Adresa" value="{{.company.Address}}">
@@ -20,11 +20,11 @@
 
         <div class="mb-4">
             <div class="input-group">
-                <span class="input-group-text">Šifra</span>
+                <span class="input-group-text">PIB</span>
                 <input type="text" name="Code" id="Code" class="form-control" placeholder="Šifra" value="{{.company.Code}}" required>
-                <span class="input-group-text">Šifra Sektor</span>
+                <span class="input-group-text">Šifra poreskog obveznika</span>
                 <input type="text" name="SectorCode" id="SectorCode" class="form-control" placeholder="Šifra Sektor" value="{{.company.SectorCode}}" required>
-                <span class="input-group-text">Sektor</span>
+                <span class="input-group-text">Šifra delatnosti</span>
                 <input type="text" name="Sector" id="Sector" class="form-control" placeholder="Sektor" value="{{.company.Sector}}" required>
                 <button type="submit" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
                     <i class="bi bi-check"></i>

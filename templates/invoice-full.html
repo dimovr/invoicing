@@ -20,23 +20,27 @@
 
     <div id="invoice-view" class="container mx-auto px-4 p-4 bg-white shadow-md my-8">
         <div id="invoice" class="container mx-auto px-4 p-4 bg-white shadow-md my-8">
-            <!-- Header Section -->
+
             <div class="grid grid-cols-2 gap-2 mb-2">
                 <div>
                     <p class="text-sm"><b>PIB:</b> <span id="pib">{{ .Company.Code }}</span></p>
-                    <p class="text-sm"><b>Šifra poreskog obveznika:</b> <span id="tax-code">{{ .Company.SectorCode }}</span></p>
-                    <p class="text-sm"><b>Šifra delatnosti:</b> <span id="activity-code">{{ .Company.Sector }}</span></p>
                     <p class="text-sm"><b>Firma - radnja:</b> <span id="company">{{ .Company.Name }}</span></p>
                     <p class="text-sm"><b>Obveznik:</b> <span id="taxpayer">{{ .Company.Owner }}</span></p>
                     <p class="text-sm"><b>Sedište:</b> <span id="headquarters">{{ .Company.Address }}</span></p>
+                    <p class="text-sm"><b>Šifra poreskog obveznika:</b> <span id="tax-code">{{ .Company.Sector }}</span></p>
+                    <p class="text-sm"><b>Šifra delatnosti:</b> <span id="activity-code">{{ .Company.SectorCode }}</span></p>
                 </div>
                 <div class="text-center">
-                    <h3 class="text-xl font-bold uppercase">Kalkulacija Prodajne Cene #{{ .Invoice.DocumentNumber }}</h3>
+                    <h3 class="text-xl font-bold uppercase">Kalkulacija Prodajne Cene</h3>
                     <br>
-                    <p class="text-sm mb-4"><b>isporučilac dobara: </b> 
-                        {{ .Invoice.Supplier.Name }} - {{ .Invoice.Supplier.Code }} / {{ .Invoice.Supplier.Address}}
+                    <p><b>isporučilac dobra: </b>
+                        {{ .Invoice.Supplier.Name }} {{ .Invoice.Supplier.Code }} {{ .Invoice.Supplier.Address}}
                     </p>
-                    <p class="text-sm mb-4"><b>od</b> {{ .Invoice.Date.Format "02.01.2006" }} <b>godine</b></p>
+                    </br>
+                    <p>
+                        <b>po dokumentu</b> faktura <b>br.</b>{{.Invoice.DocumentNumber }} 
+                        <b>od</b> {{ .Invoice.Date.Format "02.01.2006" }} <b>godine</b>
+                    </p>
                 </div>
             </div>
 
