@@ -20,13 +20,6 @@ type ProductCsv struct {
 	Price     int
 }
 
-// CSV headers as defined in the sample
-var headers = []string{
-	"PLU", "Name", "VAT", "Stock group", "PriceType", "Price",
-	"Single Sale", "Turnover", "Sold Qty", "Stock Qty",
-	"Barcode1", "Barcode2", "Barcode3", "Barcode4",
-}
-
 // ReadProductsFromCSV reads products from a CSV file
 func ReadProductsFromCSV(filename string) ([]ProductCsv, error) {
 	// Open the CSV file

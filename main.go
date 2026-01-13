@@ -50,7 +50,7 @@ func main() {
 	r.GET("/invoices/:id/edit", invoiceHandler.GetInvoiceEditPage)
 	r.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)
 
-	r.Run(":8080")
+	_ = r.Run(":8080")
 }
 
 func initDb() *gorm.DB {
@@ -58,7 +58,7 @@ func initDb() *gorm.DB {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
+	_ = db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
 	return db
 }
 
