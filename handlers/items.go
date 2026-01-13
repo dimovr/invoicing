@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"invoicing-item-app/models" // Adjust this import path based on your module name
+	"invoicing-item-app/csv"
+	"invoicing-item-app/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -99,4 +100,19 @@ func (h *ItemHandler) UpdateItem(c *gin.Context) {
 
 	h.DB.Save(&item)
 	c.HTML(http.StatusOK, "item.html", item)
+}
+
+func (h *ItemHandler) ExportItems(c *gin.Context) {
+	var items []models.Item
+	h.DB.Find(&items)
+
+	csvData, err := csv.ExportItemsToCSV(items)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error exporting items: %v", err)
+		return
+	}
+
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", "attachment; filename=items.csv")
+	c.Data(http.StatusOK, "text/csv", csvData)
 }

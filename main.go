@@ -29,6 +29,7 @@ func main() {
 	r.GET("/items/:id/edit", itemHandler.GetItemEditForm)
 	r.PUT("/items/:id", itemHandler.UpdateItem)
 	r.DELETE("/items/:id", itemHandler.DeleteItem)
+	r.GET("/items/export", itemHandler.ExportItems)
 
 	supplierHandler := handlers.NewSupplierHandler(db)
 	r.GET("/suppliers", supplierHandler.GetSuppliers)
