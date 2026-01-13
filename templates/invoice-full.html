@@ -118,7 +118,9 @@
                         <tr>
                             <td colspan="5" class="p-2"></td>
                             <td class="p-2 text-right font-bold">{{ printf "%.2f" .Invoice.Subtotal }}</td>
-                            <td colspan="4" class="p-2"></td>
+                            <td colspan="1" class="p-2"></td>
+                            <td class="p-2 text-right">{{ printf "%.2f" (sub .Invoice.Total .Invoice.Subtotal) }}</td>
+                            <td colspan="2" class="p-2"></td>
                             <td class="p-2 text-right font-bold">{{ printf "%.2f" .Invoice.TaxAmount }}</td>
                             <td class="p-2 text-right font-bold">{{ printf "%.2f" .Invoice.Total }}</td>
                             <td colspan="2" class="p-2"></td>
