@@ -1,3 +1,15 @@
-{{range .suppliers}}
-    {{template "supplier.html" .}}
-{{end}}
+<table id="suppliersTable" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Ime</th>
+            <th>Šifra</th>
+            <th>Adresa</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .suppliers}}
+            {{template "supplier.html" .}}
+        {{end}}
+    </tbody>
+</table>

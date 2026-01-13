@@ -43,18 +43,7 @@
             </div>
         {{else if eq .active "suppliers"}}
             <div id="supplierForm" class="card mb-3" hx-get="/suppliers/form" hx-trigger="load"></div>
-                <table id="suppliersTable" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Ime</th>
-                            <th>Šifra</th>
-                            <th>Adresa</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody hx-get="/suppliers/list" hx-trigger="load"></tbody>
-                </table>
-            </div>
+            <div id="suppliersTable" hx-get="/suppliers/list" hx-trigger="load" class="table table-striped"></div>
         {{else if eq .active "invoices"}}    
             {{template "invoices.html" .}}
         {{end}}
