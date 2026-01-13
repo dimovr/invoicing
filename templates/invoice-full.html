@@ -139,15 +139,17 @@
             </div>
 
         </div>
-        <button id="print-btn" class="bg-gray-500 text-white px-4 py-2 rounded w-full">
-            <i class="bi bi-printer"></i>
-        </button>
+        <div class="grid grid-cols-2 gap-2 mb-2">
+            <button id="print-btn" class="bg-gray-500 text-white px-4 py-2 rounded w-full">
+                <i class="bi bi-printer"></i>
+            </button>
+            <a id="edit-btn" href="/invoices/{{.Invoice.ID}}/edit" class="bg-green-500 text-white px-4 py-2 rounded w-full">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
     </div>
 
     <script>
-        // document.getElementById('print-btn').addEventListener('click', function() {
-        //     window.print();
-        // });
     document.getElementById('print-btn').addEventListener('click', function() {
         const invoiceContent = document.getElementById('invoice').outerHTML;
         
