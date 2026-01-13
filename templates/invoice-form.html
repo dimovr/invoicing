@@ -32,11 +32,12 @@
             <div class="mb-6">
                 <form id="addItemForm" hx-post="/invoices/{{.Invoice.ID}}/items" hx-target="#line-items" hx-swap="beforeend">
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                        <div class="col-span-2">
-                            <select id="item_id" name="item_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <div class="col-span-2 relative">
+                            <input type="text" id="item_search" placeholder="Pretraži proizvode..." class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" autocomplete="off">
+                            <select id="item_id" name="item_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mt-1" required size="5">
                                 <option value="">Proizvod</option>
                                 {{range .Items}}
-                                    <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}">{{.Name}} - {{.Price}} - {{.Unit}}</option>
+                                    <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}" data-name="{{.Name}}" data-unit="{{.Unit}}">{{.Name}} - {{.Price}} - {{.Unit}}</option>
                                 {{end}}
                             </select>
                         </div>
@@ -78,8 +79,48 @@
                 <i class="bi bi-check"></i>
             </button>
         </div>
-
     </div>
+
+    <script>
+        const itemSearch = document.getElementById('item_search');
+        const itemSelect = document.getElementById('item_id');
+        const buyPriceInput = document.getElementById('buy_price');
+        const allOptions = Array.from(itemSelect.options);
+
+        // Search functionality
+        itemSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            // Clear current options except the first one
+            itemSelect.innerHTML = '';
+            
+            // Filter and add matching options
+            allOptions.forEach(option => {
+                const optionText = option.textContent.toLowerCase();
+                if (searchTerm === '' || optionText.includes(searchTerm)) {
+                    itemSelect.appendChild(option.cloneNode(true));
+                }
+            });
+        });
+
+        // Auto-fill price when item is selected
+        itemSelect.addEventListener('change', function(e) {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            
+            if (price) {
+                buyPriceInput.value = price;
+            }
+            
+            // Update search input to show selected item
+            itemSearch.value = selectedOption.textContent;
+        });
+
+        // Clear search when clicking on it
+        itemSearch.addEventListener('focus', function() {
+            this.value = '';
+            itemSelect.selectedIndex = 0;
+        });
+    </script>
 </body>
 </html>
-    
