@@ -24,37 +24,11 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 	var items []models.Item
 	query := h.DB
 
-	// Get sort parameters
-	sortBy := c.DefaultQuery("sort", "id")
-	sortOrder := c.DefaultQuery("order", "asc")
-
-	// Validate sort field
-	validSortFields := map[string]bool{
-		"id":      true,
-		"name":    true,
-		"price":   true,
-		"unit":    true,
-		"taxRate": true,
-	}
-
-	if validSortFields[sortBy] {
-		// Build order clause
-		orderClause := sortBy
-		if sortOrder == "desc" {
-			orderClause += " DESC"
-		} else {
-			orderClause += " ASC"
-		}
-		query = query.Order(orderClause)
-	}
-
 	query.Find(&items)
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"items":     items,
-		"active":    "items",
-		"Title":     "Items",
-		"sortBy":    sortBy,
-		"sortOrder": sortOrder,
+		"items":  items,
+		"active": "items",
+		"Title":  "Items",
 	})
 }
 
@@ -62,35 +36,9 @@ func (h *ItemHandler) GetItemsPartial(c *gin.Context) {
 	var items []models.Item
 	query := h.DB
 
-	// Get sort parameters
-	sortBy := c.DefaultQuery("sort", "id")
-	sortOrder := c.DefaultQuery("order", "asc")
-
-	// Validate sort field
-	validSortFields := map[string]bool{
-		"id":      true,
-		"name":    true,
-		"price":   true,
-		"unit":    true,
-		"taxRate": true,
-	}
-
-	if validSortFields[sortBy] {
-		// Build order clause
-		orderClause := sortBy
-		if sortOrder == "desc" {
-			orderClause += " DESC"
-		} else {
-			orderClause += " ASC"
-		}
-		query = query.Order(orderClause)
-	}
-
 	query.Find(&items)
 	c.HTML(http.StatusOK, "items_list.html", gin.H{
-		"items":     items,
-		"sortBy":    sortBy,
-		"sortOrder": sortOrder,
+		"items": items,
 	})
 }
 

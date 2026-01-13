@@ -1,11 +1,11 @@
 <table id="itemsTable" class="table table-striped">
     <thead>
         <tr>
-            <th><a href="/items/list?sort=id&order={{if eq .sortOrder "asc"}}desc{{else}}asc{{end}}" class="text-decoration-none text-dark"># {{if eq .sortBy "id"}}{{if eq .sortOrder "asc"}}↑{{else}}↓{{end}}{{end}}</a></th>
-            <th><a href="/items/list?sort=name&order={{if eq .sortOrder "asc"}}desc{{else}}asc{{end}}" class="text-decoration-none text-dark">Proizvod {{if eq .sortBy "name"}}{{if eq .sortOrder "asc"}}↑{{else}}↓{{end}}{{end}}</a></th>
-            <th><a href="/items/list?sort=price&order={{if eq .sortOrder "asc"}}desc{{else}}asc{{end}}" class="text-decoration-none text-dark">Cena {{if eq .sortBy "price"}}{{if eq .sortOrder "asc"}}↑{{else}}↓{{end}}{{end}}</a></th>
-            <th><a href="/items/list?sort=unit&order={{if eq .sortOrder "asc"}}desc{{else}}asc{{end}}" class="text-decoration-none text-dark">Jedinica {{if eq .sortBy "unit"}}{{if eq .sortOrder "asc"}}↑{{else}}↓{{end}}{{end}}</a></th>
-            <th><a href="/items/list?sort=taxRate&order={{if eq .sortOrder "asc"}}desc{{else}}asc{{end}}" class="text-decoration-none text-dark">Porez {{if eq .sortBy "taxRate"}}{{if eq .sortOrder "asc"}}↑{{else}}↓{{end}}{{end}}</a></th>
+            <th>#</th>
+            <th>Proizvod</th>
+            <th>Cena</th>
+            <th>Jedinica</th>
+            <th>Porez</th>
             <th></th>
         </tr>
     </thead>
