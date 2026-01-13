@@ -31,10 +31,10 @@
             
             <div class="mb-6">
                 <form id="addItemForm" hx-post="/invoices/{{.Invoice.ID}}/items" hx-target="#line-items" hx-swap="beforeend">
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-start">
                         <div class="col-span-2 relative">
                             <input type="text" id="item_search" placeholder="Pretraži proizvode..." class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" autocomplete="off">
-                            <select id="item_id" name="item_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mt-1" required size="5">
+                            <select id="item_id" name="item_id" class="absolute left-0 top-full z-10 shadow-lg border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mt-1 bg-white hidden max-h-60 overflow-y-auto" required size="8">
                                 <option value="">Proizvod</option>
                                 {{range .Items}}
                                     <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}" data-name="{{.Name}}" data-unit="{{.Unit}}">{{.Name}} - {{.Price}} - {{.Unit}}</option>
@@ -43,7 +43,7 @@
                         </div>
                         <input type="number" id="quantity" name="quantity" placeholder="Količina"  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0.01" required>
                         <input type="number" id="buy_price" placeholder="Nabavna cena" name="price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0.01" required>
-                        <input type="number" id="discount" name="discount"placeholder="Rabat" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0" max="100">
+                        <input type="number" id="discount" name="discount" placeholder="Rabat" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0" max="100">
                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
                             <i class="bi bi-plus"></i>
                         </button>
@@ -87,7 +87,7 @@
         const buyPriceInput = document.getElementById('buy_price');
         const allOptions = Array.from(itemSelect.options);
 
-        // Search functionality
+        // Show dropdown when typing
         itemSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             
@@ -95,12 +95,28 @@
             itemSelect.innerHTML = '';
             
             // Filter and add matching options
-            allOptions.forEach(option => {
+            const filteredOptions = allOptions.filter(option => {
                 const optionText = option.textContent.toLowerCase();
-                if (searchTerm === '' || optionText.includes(searchTerm)) {
-                    itemSelect.appendChild(option.cloneNode(true));
-                }
+                return searchTerm === '' || optionText.includes(searchTerm);
             });
+
+            filteredOptions.forEach(option => {
+                itemSelect.appendChild(option.cloneNode(true));
+            });
+
+            // Show/hide dropdown based on search
+            if (searchTerm && filteredOptions.length > 1) {
+                itemSelect.classList.remove('hidden');
+            } else if (!searchTerm) {
+                itemSelect.classList.add('hidden');
+            }
+        });
+
+        // Show dropdown on focus
+        itemSearch.addEventListener('focus', function() {
+            if (this.value) {
+                itemSelect.classList.remove('hidden');
+            }
         });
 
         // Auto-fill price when item is selected
@@ -108,18 +124,26 @@
             const selectedOption = e.target.options[e.target.selectedIndex];
             const price = selectedOption.getAttribute('data-price');
             
-            if (price) {
+            if (price && selectedOption.value) {
                 buyPriceInput.value = price;
+                itemSearch.value = selectedOption.textContent;
+                itemSelect.classList.add('hidden');
             }
-            
-            // Update search input to show selected item
-            itemSearch.value = selectedOption.textContent;
         });
 
-        // Clear search when clicking on it
-        itemSearch.addEventListener('focus', function() {
-            this.value = '';
-            itemSelect.selectedIndex = 0;
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!itemSearch.contains(e.target) && !itemSelect.contains(e.target)) {
+                itemSelect.classList.add('hidden');
+            }
+        });
+
+        // Select item on click
+        itemSelect.addEventListener('click', function(e) {
+            if (e.target.tagName === 'OPTION' && e.target.value) {
+                this.value = e.target.value;
+                this.dispatchEvent(new Event('change'));
+            }
         });
     </script>
 </body>
