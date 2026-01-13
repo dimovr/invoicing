@@ -1,0 +1,19 @@
+<table id="invoicesTable" class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>#</th>
+            <th>Dobavljač</th>
+            <th>Datum</th>
+            <th>Iznos</th>
+            <th>Porez</th>
+            <th>Ukupno</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .invoices}}
+            {{template "invoice.html" .}}
+        {{end}}
+    </tbody>
+</table>

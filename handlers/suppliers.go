@@ -30,7 +30,7 @@ func (h *SupplierHandler) GetSuppliers(c *gin.Context) {
 func (h *SupplierHandler) GetSuppliersPartial(c *gin.Context) {
 	var suppliers []models.Supplier
 	h.DB.Find(&suppliers)
-	c.HTML(http.StatusOK, "suppliers.html", gin.H{
+	c.HTML(http.StatusOK, "suppliers_list.html", gin.H{
 		"suppliers": suppliers,
 	})
 }

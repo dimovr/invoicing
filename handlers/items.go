@@ -33,7 +33,7 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 func (h *ItemHandler) GetItemsPartial(c *gin.Context) {
 	var items []models.Item
 	h.DB.Find(&items)
-	c.HTML(http.StatusOK, "items.html", gin.H{
+	c.HTML(http.StatusOK, "items_list.html", gin.H{
 		"items": items,
 	})
 }
