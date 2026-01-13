@@ -1,3 +1,17 @@
-{{range .items}}
-    {{template "item.html" .}}
-{{end}}
+<table id="itemsTable" class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Proizvod</th>
+            <th>Cena</th>
+            <th>Jedinica</th>
+            <th>Porez</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .items}}
+            {{template "item.html" .}}
+        {{end}}
+    </tbody>
+</table>

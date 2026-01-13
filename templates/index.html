@@ -21,26 +21,12 @@
 
     <div class="container mx-auto px-4 mt-5">
         {{if eq .active "company"}}
-            <!-- Render the company form directly on initial load -->
             <div id="companyForm">
                 {{template "company.html" .}}
             </div>
         {{else if eq .active "items"}}
             <div id="itemForm" class="card mb-3" hx-get="/items/form" hx-trigger="load"></div>
-                <table id="itemsTable" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Proizvod</th>
-                            <th>Cena</th>
-                            <th>Jedinica</th>
-                            <th>Porez</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody hx-get="/items/list" hx-trigger="load"></tbody>
-                </table>
-            </div>
+            <div id="itemsTable" class="table table-striped" hx-get="/items/list" hx-trigger="load"></div>
         {{else if eq .active "suppliers"}}
             <div id="supplierForm" class="card mb-3" hx-get="/suppliers/form" hx-trigger="load"></div>
             <div id="suppliersTable" hx-get="/suppliers/list" hx-trigger="load" class="table table-striped"></div>
