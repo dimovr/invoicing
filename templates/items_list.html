@@ -1,3 +1,7 @@
+<div class="mb-3">
+    <input type="text" id="productSearch" class="form-control" placeholder="Pretraži proizvode...">
+</div>
+
 <table id="itemsTable" class="table table-striped">
     <thead>
         <tr>
@@ -15,3 +19,22 @@
         {{end}}
     </tbody>
 </table>
+
+<script>
+document.getElementById('productSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#itemsTable tbody tr');
+    
+    rows.forEach(row => {
+        // Get the product name from the second column (index 1)
+        const productCell = row.cells[1];
+        const productText = productCell.textContent.toLowerCase();
+        
+        if (productText.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+</script>

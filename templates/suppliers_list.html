@@ -1,3 +1,7 @@
+<div class="mb-3">
+    <input type="text" id="supplierSearch" class="form-control" placeholder="Pretraži dobavljače...">
+</div>
+
 <table id="suppliersTable" class="table table-striped">
     <thead>
         <tr>
@@ -13,3 +17,22 @@
         {{end}}
     </tbody>
 </table>
+
+<script>
+document.getElementById('supplierSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#suppliersTable tbody tr');
+    
+    rows.forEach(row => {
+        // Get the supplier name from the first column (index 0)
+        const supplierCell = row.cells[0];
+        const supplierText = supplierCell.textContent.toLowerCase();
+        
+        if (supplierText.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+</script>
