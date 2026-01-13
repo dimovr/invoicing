@@ -10,6 +10,9 @@
         <a href="/invoices/{{.ID}}/view" class="btn py-1 px-2 text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded mr-2">
             <i class="bi bi-eye"></i>
         </a>
+        <a href="/invoices/{{.ID}}/edit" class="btn py-1 px-2 text-sm bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded mr-2">
+            <i class="bi bi-pencil"></i>
+        </a>
         <button class="btn py-1 px-2 text-sm bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded"
                 hx-delete="/invoices/{{.ID}}"
                 hx-target="#invoice-{{.ID}}"
