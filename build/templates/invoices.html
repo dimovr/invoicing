@@ -1,0 +1,40 @@
+<div id="invoiceView" class="container mx-auto px-4">
+
+    <form id="invoiceForm" action="/invoices" method="POST">
+        <div class="input-group">
+            <select id="supplier" name="supplier_id" class="form-control" required>
+                <option value="">Izaberite dobavljača</option>
+                {{range .suppliers}}
+                    <option value="{{.ID}}">{{.Name}} - {{.Code}} / {{.Address}}</option>
+                {{end}}
+            </select>
+            <input type="text" id="document_number" name="document_number" class="form-control" placeholder="Broj fakture" required>
+            <input type="date" id="date" name="date" class="form-control" value="{{.TodayDate}}" required>
+            <button type="submit" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
+                <i class="bi bi-plus"></i>
+            </button>
+        </div>
+    </form>
+
+    <div class="container mx-auto px-4 mt-4">
+        <table id="invoicesTable" class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>#</th>
+                    <th>Dobavljač</th>
+                    <th>Datum</th>
+                    <th>Iznos</th>
+                    <th>Porez</th>
+                    <th>Ukupno</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .invoices}}
+                    {{template "invoice.html" .}}
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>

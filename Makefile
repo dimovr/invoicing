@@ -1,75 +1,99 @@
+# ======================
 # Variables
-BINARY_NAME=fakture
-VERSION=1.0.0
-BUILD_DIR=build
-PLATFORMS=darwin/amd64 darwin/arm64 windows/amd64
+# ======================
+BINARY_NAME := fakture
+VERSION := 1.0.0
+BUILD_DIR := build
 
-# Go commands
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GOGET=$(GOCMD) get
-GOMOD=$(GOCMD) mod
+DARWIN_ARM64 := $(BUILD_DIR)/darwin_arm64
+WINDOWS_AMD64 := $(BUILD_DIR)/windows_amd64
 
-# Formatting and linting
-GOFMT=$(GOCMD) fmt
-GOLINT=golangci-lint
+GOCMD := go
+GOBUILD := $(GOCMD) build
+GOCLEAN := $(GOCMD) clean
+GOMOD := $(GOCMD) mod
+GOFMT := $(GOCMD) fmt
 
-# Default target
 .DEFAULT_GOAL := help
 
-.PHONY: all clean deps fmt lint test help package package-darwin package-windows run
+.PHONY: all clean deps fmt lint test build run package help
 
-all: clean fmt lint test build package ## Run a complete build cycle
+# ======================
+# Core targets
+# ======================
 
-clean: ## Clean build directories
+all: clean fmt test build package ## Full build cycle
+
+clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	@rm -rf $(BUILD_DIR)
-	$(GOCLEAN)
+	@$(GOCLEAN)
 
-deps: ## Install dependencies
-	@echo "Ensuring dependencies are up to date..."
-	$(GOMOD) tidy
-	$(GOGET) -v ./...
+deps: ## Ensure dependencies
+	@$(GOMOD) tidy
 
-fmt: ## Format source code
-	@echo "Formatting code..."
-	$(GOFMT) ./...
+fmt: ## Format code
+	@$(GOFMT) ./...
 
-lint: ## Lint source code
-	@echo "Linting code..."
-	$(GOLINT) run
+lint: ## Lint code (requires golangci-lint)
+	@golangci-lint run
 
 test: ## Run tests
-	@echo "Running tests..."
-	$(GOCMD) test -v ./...
+	@$(GOCMD) test ./...
 
-run: build ## Run the application locally
-	@echo "Running application..."
+# ======================
+# Local build & run
+# ======================
+
+build: ## Build for local platform
+	@echo "Building local binary..."
+	@mkdir -p $(BUILD_DIR)
+	@$(GOBUILD) -o $(BUILD_DIR)/$(BINARY_NAME)
 	@cp -r templates $(BUILD_DIR)/
-	cd $(BUILD_DIR) && ./$(BINARY_NAME)
 
-package: package-darwin package-windows ## Package for all platforms
+run: build ## Run locally
+ifeq ($(OS),Windows_NT)
+	@$(BUILD_DIR)\$(BINARY_NAME).exe
+else
+	@$(BUILD_DIR)/$(BINARY_NAME)
+endif
 
-package-darwin: ## Package for macOS (Intel and Apple Silicon)
-	@echo "Packaging for macOS..."
-	@mkdir -p $(BUILD_DIR)/darwin_arm64
-	
-	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BUILD_DIR)/darwin_arm64/$(BINARY_NAME) -v
-	
-	@cp -r templates $(BUILD_DIR)/darwin_arm64/
-	@cd $(BUILD_DIR) && zip -r $(BINARY_NAME)_$(VERSION)_darwin_arm64.zip darwin_arm64
-	@echo "macOS package created at $(BUILD_DIR)/$(BINARY_NAME)_$(VERSION)_darwin_arm64.zip"
+# ======================
+# Packaging
+# ======================
 
-package-windows: ## Package for Windows
-	@echo "Packaging for Windows..."
-	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BUILD_DIR)/windows_amd64/$(BINARY_NAME).exe -v
-	
-	@cp -r templates $(BUILD_DIR)/windows_amd64/
-	
-	@cd $(BUILD_DIR) && zip -r $(BINARY_NAME)_$(VERSION)_windows_amd64.zip windows_amd64
-	@echo "Windows package created at $(BUILD_DIR)/$(BINARY_NAME)_$(VERSION)_windows_amd64.zip"
+package: package-darwin package-windows ## Build all packages
 
-help: ## Display available commands
-	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+package-darwin: ## Package macOS (Intel + Apple Silicon)
+	@echo "Packaging macOS binaries..."
+
+	@mkdir -p $(DARWIN_AMD64) $(DARWIN_ARM64)
+
+	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(DARWIN_AMD64)/$(BINARY_NAME)
+	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(DARWIN_ARM64)/$(BINARY_NAME)
+
+	@cp -r templates $(DARWIN_AMD64)/
+	@cp -r templates $(DARWIN_ARM64)/
+
+	@cd $(BUILD_DIR) && \
+	zip -r $(BINARY_NAME)_$(VERSION)_darwin_amd64.zip darwin_amd64 && \
+	zip -r $(BINARY_NAME)_$(VERSION)_darwin_arm64.zip darwin_arm64
+
+package-windows: ## Package Windows
+	@echo "Packaging Windows binary..."
+
+	@mkdir -p $(WINDOWS_AMD64)
+
+	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(WINDOWS_AMD64)/$(BINARY_NAME).exe
+	@cp -r templates $(WINDOWS_AMD64)/
+
+	@cd $(BUILD_DIR) && \
+	zip -r $(BINARY_NAME)_$(VERSION)_windows_amd64.zip windows_amd64
+
+# ======================
+# Help
+# ======================
+
+help: ## Show available commands
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
