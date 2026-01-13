@@ -66,6 +66,12 @@ func setupTemplates(r *gin.Engine) {
 		"add": func(a, b int) int {
 			return a + b
 		},
+		"or": func(a, b string) string {
+			if a != "" {
+				return a
+			}
+			return b
+		},
 	}
 
 	r.SetFuncMap(funcMap)
