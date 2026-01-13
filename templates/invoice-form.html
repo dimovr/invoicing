@@ -36,7 +36,7 @@
                             <select id="item_id" name="item_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                                 <option value="">Proizvod</option>
                                 {{range .Items}}
-                                    <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}">{{.Name}} - {{.Unit}}</option>
+                                    <option value="{{.ID}}" data-price="{{.Price}}" data-tax-rate="{{.TaxRate}}">{{.Name}} - {{.Price}} - {{.Unit}}</option>
                                 {{end}}
                             </select>
                         </div>

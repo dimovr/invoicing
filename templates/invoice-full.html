@@ -104,7 +104,7 @@
                             <td class="p-2 text-right">{{ printf "%.2f" $item.BuyingPrice }}</td>
                             <td class="p-2 text-right">{{ printf "%.2f" $item.Subtotal }}</td>
                             <td class="p-2 text-right"> </td>
-                            <td class="p-2 text-right"> </td>
+                            <td class="p-2 text-right">{{ printf "%.2f" (sub $item.Total $item.Subtotal) }}</td>
                             <td class="p-2 text-right"></td>
                             <td class="p-2 text-center">{{ printf "%.2f" $item.TaxRate }}%</td>
                             <td class="p-2 text-right">{{ printf "%.2f" $item.TaxAmount }}</td>

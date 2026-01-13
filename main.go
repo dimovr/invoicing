@@ -66,6 +66,9 @@ func setupTemplates(r *gin.Engine) {
 		"add": func(a, b int) int {
 			return a + b
 		},
+		"sub": func(a, b float64) float64 {
+			return a - b
+		},
 	}
 
 	r.SetFuncMap(funcMap)
