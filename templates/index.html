@@ -25,10 +25,10 @@
                 {{template "company.html" .}}
             </div>
         {{else if eq .active "items"}}
-            <div id="itemForm" class="card mb-3" hx-get="/items/form" hx-trigger="load"></div>
+            <div id="itemForm" class="card mb-3 sticky top-2 z-20 bg-black" hx-get="/items/form" hx-trigger="load"></div>
             <div id="itemsTable" class="table table-striped" hx-get="/items/list?sort={{or .sortBy "id"}}&order={{or .sortOrder "asc"}}" hx-trigger="load"></div>
         {{else if eq .active "suppliers"}}
-            <div id="supplierForm" class="card mb-3" hx-get="/suppliers/form" hx-trigger="load"></div>
+            <div id="supplierForm" class="card mb-3 sticky top-2 z-20 bg-black" hx-get="/suppliers/form" hx-trigger="load"></div>
             <div id="suppliersTable" hx-get="/suppliers/list" hx-trigger="load" class="table table-striped"></div>
         {{else if eq .active "invoices"}}    
             {{template "invoices.html" .}}
