@@ -9,6 +9,9 @@ import (
 	"strings"
 
 	"invoicing-item-app/models"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 // ProductCsv represents the simplified product structure
@@ -144,37 +147,36 @@ func ExportItemsToCSV(items []models.Item) ([]byte, error) {
 	return []byte(output.String()), nil
 }
 
-// func main() {
-//     db, err := gorm.Open(sqlite.Open("invoicing.db"), &gorm.Config{})
-//     if err != nil {
-//        panic("failed to connect database")
-//     }
-//     db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
+func Populate(inputFile string) {
+	db, err := gorm.Open(sqlite.Open("invoicing.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
 
-//     inputFile := "artikli.csv"
-//     products, err := ReadProductsFromCSV(inputFile)
-//     if err != nil {
-//        fmt.Printf("Error reading CSV: %v\n", err)
-//        return
-//     }
+	products, err := ReadProductsFromCSV(inputFile)
+	if err != nil {
+		fmt.Printf("Error reading CSV: %v\n", err)
+		return
+	}
 
-//     fmt.Printf("Found %d products to import\n", len(products))
+	fmt.Printf("Found %d products to import\n", len(products))
 
-//     successCount := 0
-//     errorCount := 0
+	successCount := 0
+	errorCount := 0
 
-//     for _, p := range products {
-//        item := ConvertToItem(p)
+	for _, p := range products {
+		item := ConvertToItem(p)
 
-//        if err := db.Create(&item).Error; err != nil {
-//           fmt.Printf("Error importing item '%s': %v\n", p.Name, err)
-//           errorCount++
-//        } else {
-//           fmt.Printf("✓ Imported: %s (Price: %.2f, Tax: %d%%)\n",
-//              item.Name, item.Price, item.TaxRate)
-//           successCount++
-//        }
-//     }
+		if err := db.Create(&item).Error; err != nil {
+			fmt.Printf("Error importing item '%s': %v\n", p.Name, err)
+			errorCount++
+		} else {
+			fmt.Printf("✓ Imported: %s (Price: %.2f, Tax: %d%%)\n",
+				item.Name, item.Price, item.TaxRate)
+			successCount++
+		}
+	}
 
-//     fmt.Printf("\nImport complete: %d successful, %d failed\n", successCount, errorCount)
-// }
+	fmt.Printf("\nImport complete: %d successful, %d failed\n", successCount, errorCount)
+}

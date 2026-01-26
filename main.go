@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"html/template"
+	"invoicing-item-app/csv"
 	"invoicing-item-app/handlers"
 	"invoicing-item-app/models"
 
@@ -11,7 +13,14 @@ import (
 )
 
 func main() {
+	populate := flag.Bool("populate", false, "Populate database from CSV file")
+	flag.Parse()
+
 	db := initDb()
+
+	if *populate {
+		csv.Populate("artikli.csv")
+	}
 
 	r := gin.Default()
 
