@@ -37,7 +37,7 @@
                             <select id="item_id" name="item_id" class="absolute left-0 top-full z-10 shadow-lg border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mt-1 bg-white hidden max-h-60 overflow-y-auto" required size="8">
                                 <option value="">Proizvod</option>
                                 {{range .Items}}
-                                    <option value="{{.ID}}" data-price="0" data-tax-rate="{{.TaxRate}}" data-name="{{.Name}}" data-unit="{{.Unit}}">{{.Name}} - {{.Price}} - {{.Unit}}</option>
+                                    <option value="{{.ID}}" data-price="0" data-tax-rate="{{.TaxRate}}" data-name="{{.Name}}" data-unit="{{.Unit}}">{{.ID}} - {{.Name}} - {{.Price}} - {{.Unit}}</option>
                                 {{end}}
                             </select>
                         </div>
