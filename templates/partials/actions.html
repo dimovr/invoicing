@@ -1,0 +1,39 @@
+{{define "actions"}}
+<td class="text-end">
+    {{if .viewURL}}
+    <a href="{{.viewURL}}" class="btn py-1 px-2 text-sm bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded mr-2">
+        <i class="bi bi-eye"></i>
+    </a>
+    {{end}}
+    {{if .editURL}}
+    <a href="{{.editURL}}" class="btn py-1 px-2 text-sm bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded mr-2">
+        <i class="bi bi-pencil"></i>
+    </a>
+    {{end}}
+    {{if .editHxGet}}
+    <button class="btn py-1 px-2 text-sm bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-2 rounded mr-2"
+            hx-get="{{.editHxGet}}"
+            hx-target="{{.editTarget}}"
+            hx-swap="innerHTML">
+        <i class="bi bi-pencil"></i>
+    </button>
+    {{end}}
+    {{if .editHxPut}}
+    <button class="btn py-1 px-2 text-sm bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-2 rounded mr-2"
+            hx-put="{{.editHxPut}}"
+            hx-target="{{.editTarget}}"
+            hx-swap="innerHTML">
+        <i class="bi bi-pencil"></i>
+    </button>
+    {{end}}
+    {{if .deleteURL}}
+    <button class="btn py-1 px-2 text-sm bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded"
+            hx-delete="{{.deleteURL}}"
+            hx-target="{{.deleteTarget}}"
+            hx-swap="outerHTML"
+            hx-confirm="Jeste li sigurni?">
+        <i class="bi bi-trash"></i>
+    </button>
+    {{end}}
+</td>
+{{end}}

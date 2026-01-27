@@ -1,0 +1,163 @@
+# Invoicing App - Axum Implementation
+
+A Rust-based clone of the Go invoicing application using the Axum web framework.
+
+## Features
+
+- **Company Management**: Create and update company information
+- **Items Management**: CRUD operations for inventory items with tax rates
+- **Suppliers Management**: Manage supplier information
+- **Invoicing**: Create invoices with line items, calculate totals and taxes
+
+## Tech Stack
+
+- **Axum 0.7**: Ergonomic and modular web framework
+- **Tokio**: Async runtime
+- **SQLx 0.8**: Async SQL toolkit for Rust
+- **SQLite**: Lightweight database
+- **Askama**: Type-safe templates
+- **Chrono**: Date and time handling
+- **Serde**: Serialization/deserialization
+- **Tower**: Modular service abstraction
+- **Tracing**: Structured logging
+
+## Project Structure
+
+```
+rust/axum/
+├── migrations/                    # Database migrations
+│   └── 2023-01-01-000000_initial.sql
+├── src/
+│   ├── main.rs                   # Application entry point and routing
+│   ├── models.rs                 # Data models
+│   └── handlers.rs               # Request handlers
+├── Cargo.toml                    # Dependencies
+└── README.md                     # This file
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Rust 1.70 or later
+
+### Setup
+
+1. Run the application:
+   ```bash
+   cargo run
+   ```
+
+The server will start on `http://127.0.0.1:8080`
+
+### Environment Variables
+
+- `DATABASE_URL`: Path to SQLite database (default: `invoicing.db`)
+
+## API Endpoints
+
+### Company
+- `GET /company` - Get company information
+- `POST /company` - Create or update company
+
+### Items
+- `GET /items` - List all items
+- `GET /items/list` - Get items list (partial)
+- `GET /items/form` - Get item creation form
+- `POST /items` - Create new item
+- `GET /items/{id}/edit` - Get item edit form
+- `PUT /items/{id}` - Update item
+- `DELETE /items/{id}` - Delete item
+- `GET /items/export` - Export items as CSV
+
+### Suppliers
+- `GET /suppliers` - List all suppliers
+- `GET /suppliers/list` - Get suppliers list (partial)
+- `GET /suppliers/form` - Get supplier creation form
+- `POST /suppliers` - Create new supplier
+- `GET /suppliers/{id}/edit` - Get supplier edit form
+- `PUT /suppliers/{id}` - Update supplier
+- `DELETE /suppliers/{id}` - Delete supplier
+
+### Invoices
+- `GET /invoices` - List all invoices
+- `POST /invoices` - Initialize new invoice
+- `POST /invoices/{id}/items` - Add line item to invoice
+- `DELETE /invoices/{id}/items/{item_id}` - Remove line item
+- `POST /invoices/{id}/complete` - Complete invoice
+- `GET /invoices/{id}/view` - View invoice details
+- `GET /invoices/{id}/edit` - Edit invoice
+- `DELETE /invoices/{id}` - Delete invoice
+
+## Database Schema
+
+### Company
+- `id` (INTEGER, PRIMARY KEY)
+- `code` (TEXT, NOT NULL)
+- `sector_code` (TEXT, NOT NULL)
+- `sector` (TEXT, NOT NULL)
+- `name` (TEXT, NOT NULL)
+- `address` (TEXT, OPTIONAL)
+- `owner` (TEXT, OPTIONAL)
+- `user` (TEXT, OPTIONAL)
+
+### Item
+- `id` (INTEGER, PRIMARY KEY)
+- `name` (TEXT, NOT NULL)
+- `price` (REAL, NOT NULL)
+- `tax_rate` (INTEGER, NOT NULL, DEFAULT 0)
+- `unit` (TEXT, NOT NULL)
+
+### Supplier
+- `id` (INTEGER, PRIMARY KEY)
+- `name` (TEXT, NOT NULL)
+- `code` (TEXT, NOT NULL)
+- `address` (TEXT, OPTIONAL)
+
+### Invoice
+- `id` (INTEGER, PRIMARY KEY)
+- `supplier_id` (INTEGER, NOT NULL, FOREIGN KEY)
+- `subtotal` (REAL, NOT NULL, DEFAULT 0)
+- `tax_amount` (REAL, NOT NULL, DEFAULT 0)
+- `total` (REAL, NOT NULL, DEFAULT 0)
+- `date` (TEXT, NOT NULL)
+- `document_number` (TEXT, NOT NULL)
+
+### InvoiceItem
+- `invoice_id` (INTEGER, PRIMARY KEY, FOREIGN KEY)
+- `item_id` (INTEGER, PRIMARY KEY, FOREIGN KEY)
+- `name` (TEXT, NOT NULL)
+- `unit` (TEXT, NOT NULL)
+- `tax_rate` (REAL, NOT NULL)
+- `discount` (REAL, NOT NULL)
+- `quantity` (REAL, NOT NULL)
+- `buying_price` (REAL, NOT NULL)
+- `subtotal` (REAL, NOT NULL)
+- `tax_amount` (REAL, NOT NULL)
+- `selling_price` (REAL, NOT NULL)
+- `total` (REAL, NOT NULL)
+- `note` (TEXT, OPTIONAL)
+
+## Development
+
+### Running tests
+```bash
+cargo test
+```
+
+### Building for release
+```bash
+cargo build --release
+```
+
+## Key Differences from Actix-Web
+
+1. **Async-First Design**: Axum is built on Tokio and is fully async by default
+2. **Extractor Pattern**: Uses extractors for request data instead of handler parameters
+3. **Tower Integration**: Built on Tower middleware ecosystem
+4. **Type Safety**: Strong compile-time guarantees for routing
+5. **SQLx**: Uses SQLx for compile-time checked SQL queries
+
+## License
+
+This is a clone of the original Go invoicing application.
