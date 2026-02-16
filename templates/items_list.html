@@ -32,11 +32,13 @@ document.getElementById('productSearch').addEventListener('input', function(e) {
     const rows = document.querySelectorAll('#itemsTable tbody tr');
     
     rows.forEach(row => {
-        // Get the product name from the second column (index 1)
-        const productCell = row.cells[1];
-        const productText = productCell.textContent.toLowerCase();
+        const idCell = row.cells[0];
+        const idText = idCell.textContent;
+
+        const nameCell = row.cells[1];
+        const nameText = nameCell.textContent.toLowerCase();
         
-        if (productText.includes(searchTerm)) {
+        if (idText.includes(searchTerm) || nameText.includes(searchTerm)) {
             row.style.display = '';
         } else {
             row.style.display = 'none';
