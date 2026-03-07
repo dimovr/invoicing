@@ -154,6 +154,9 @@ func Populate(inputFile string) {
 	}
 	db.AutoMigrate(&models.Company{}, &models.Item{}, &models.Supplier{}, &models.InvoiceItem{}, &models.Invoice{})
 
+	// Drop the items table before importing
+	db.Migrator().DropTable(&models.Item{})
+
 	products, err := ReadProductsFromCSV(inputFile)
 	if err != nil {
 		fmt.Printf("Error reading CSV: %v\n", err)
