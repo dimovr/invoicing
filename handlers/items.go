@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -115,7 +116,7 @@ func (h *ItemHandler) ExportItems(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "text/csv")
-	c.Header("Content-Disposition", "attachment; filename=artikli.csv")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", csv.DefaultCSVFile))
 	c.Data(http.StatusOK, "text/csv", csvData)
 }
 
@@ -127,7 +128,7 @@ func (h *ItemHandler) ImportItems(c *gin.Context) {
 		return
 	}
 
-	// Create a temporary file to save the uploaded CSV
+	// Save the uploaded file to a temporary location
 	tempFile := filepath.Join(os.TempDir(), file.Filename)
 	if err := c.SaveUploadedFile(file, tempFile); err != nil {
 		c.String(http.StatusInternalServerError, "Error saving file: %v", err)
@@ -135,11 +136,7 @@ func (h *ItemHandler) ImportItems(c *gin.Context) {
 	}
 	defer os.Remove(tempFile)
 
-	// Drop and recreate the items table to reset IDs
-	h.DB.Migrator().DropTable(&models.Item{})
-	h.DB.AutoMigrate(&models.Item{})
-
-	// Import items from the CSV file
+	// Import items from the CSV file (this will save to DefaultCSVFile and call Populate)
 	if err := csv.ImportItemsFromCSV(tempFile, h.DB); err != nil {
 		c.String(http.StatusInternalServerError, "Error importing items: %v", err)
 		return

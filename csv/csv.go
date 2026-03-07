@@ -14,7 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// ProductCsv represents the simplified product structure
+const DefaultCSVFile = "artikli.csv"
+
 type ProductCsv struct {
 	ID        int
 	Name      string
@@ -23,7 +24,6 @@ type ProductCsv struct {
 	Price     int
 }
 
-// ReadProductsFromCSV reads products from a CSV file
 func ReadProductsFromCSV(filename string) ([]ProductCsv, error) {
 	// Open the CSV file
 	file, err := os.Open(filename)
@@ -108,7 +108,7 @@ func parseRecord(record []string) (ProductCsv, error) {
 	}, nil
 }
 
-func ConvertToItem(product ProductCsv) models.Item {
+func convertToItem(product ProductCsv) models.Item {
 	return models.Item{
 		Name:    product.Name,
 		Price:   float64(product.Price),
@@ -117,7 +117,6 @@ func ConvertToItem(product ProductCsv) models.Item {
 	}
 }
 
-// ExportItemsToCSV exports items from the database to a CSV file
 func ExportItemsToCSV(items []models.Item) ([]byte, error) {
 	var output strings.Builder
 
@@ -147,49 +146,20 @@ func ExportItemsToCSV(items []models.Item) ([]byte, error) {
 	return []byte(output.String()), nil
 }
 
-// ImportItemsFromCSV imports items from a CSV file to the database
 func ImportItemsFromCSV(filename string, db *gorm.DB) error {
-	// Open the CSV file
-	file, err := os.Open(filename)
+	// Read the source file
+	sourceFile, err := os.ReadFile(filename)
 	if err != nil {
-		return fmt.Errorf("error opening file: %v", err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	reader.Comma = ';'
-	reader.LazyQuotes = true
-
-	// Read and skip header row
-	_, err = reader.Read()
-	if err != nil {
-		return fmt.Errorf("error reading header: %v", err)
+		return fmt.Errorf("error reading file: %v", err)
 	}
 
-	var items []models.Item
-
-	for {
-		record, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("error reading record: %v", err)
-		}
-
-		// Parse the record into models.Item
-		item, err := parseImportRecord(record)
-		if err != nil {
-			return fmt.Errorf("error parsing record: %v", err)
-		}
-
-		items = append(items, item)
+	// Write to DefaultCSVFile
+	if err := os.WriteFile(DefaultCSVFile, sourceFile, 0644); err != nil {
+		return fmt.Errorf("error writing to %s: %v", DefaultCSVFile, err)
 	}
 
-	// Insert all items into the database
-	if err := db.Create(&items).Error; err != nil {
-		return fmt.Errorf("error inserting items into database: %v", err)
-	}
+	// Call Populate to import the items
+	Populate()
 
 	return nil
 }
@@ -224,12 +194,12 @@ func parseImportRecord(record []string) (models.Item, error) {
 	return models.Item{
 		Name:    name,
 		Price:   price,
-		Unit:    "kom", // Default unit
+		Unit:    record[3], // Default unit
 		TaxRate: taxRate,
 	}, nil
 }
 
-func Populate(inputFile string) {
+func Populate() {
 	db, err := gorm.Open(sqlite.Open("invoicing.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -240,7 +210,7 @@ func Populate(inputFile string) {
 	db.Migrator().DropTable(&models.Item{})
 	db.AutoMigrate(&models.Item{})
 
-	products, err := ReadProductsFromCSV(inputFile)
+	products, err := ReadProductsFromCSV(DefaultCSVFile)
 	if err != nil {
 		fmt.Printf("Error reading CSV: %v\n", err)
 		return
@@ -252,7 +222,7 @@ func Populate(inputFile string) {
 	errorCount := 0
 
 	for _, p := range products {
-		item := ConvertToItem(p)
+		item := convertToItem(p)
 
 		if err := db.Create(&item).Error; err != nil {
 			fmt.Printf("Error importing item '%s': %v\n", p.Name, err)

@@ -19,7 +19,7 @@ func main() {
 	db := initDb()
 
 	if *populate {
-		csv.Populate("artikli.csv")
+		csv.Populate()
 	}
 
 	r := gin.Default()
