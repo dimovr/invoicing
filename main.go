@@ -39,6 +39,7 @@ func main() {
 	r.PUT("/items/:id", itemHandler.UpdateItem)
 	r.DELETE("/items/:id", itemHandler.DeleteItem)
 	r.GET("/items/export", itemHandler.ExportItems)
+	r.POST("/items/import", itemHandler.ImportItems)
 
 	supplierHandler := handlers.NewSupplierHandler(db)
 	r.GET("/suppliers", supplierHandler.GetSuppliers)

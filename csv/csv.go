@@ -147,6 +147,88 @@ func ExportItemsToCSV(items []models.Item) ([]byte, error) {
 	return []byte(output.String()), nil
 }
 
+// ImportItemsFromCSV imports items from a CSV file to the database
+func ImportItemsFromCSV(filename string, db *gorm.DB) error {
+	// Open the CSV file
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+	reader.LazyQuotes = true
+
+	// Read and skip header row
+	_, err = reader.Read()
+	if err != nil {
+		return fmt.Errorf("error reading header: %v", err)
+	}
+
+	var items []models.Item
+
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error reading record: %v", err)
+		}
+
+		// Parse the record into models.Item
+		item, err := parseImportRecord(record)
+		if err != nil {
+			return fmt.Errorf("error parsing record: %v", err)
+		}
+
+		items = append(items, item)
+	}
+
+	// Insert all items into the database
+	if err := db.Create(&items).Error; err != nil {
+		return fmt.Errorf("error inserting items into database: %v", err)
+	}
+
+	return nil
+}
+
+func parseImportRecord(record []string) (models.Item, error) {
+	if len(record) < 13 {
+		return models.Item{}, fmt.Errorf("invalid record length")
+	}
+
+	// Parse Name (column 1)
+	name := strings.Trim(record[1], "\"")
+
+	// Parse VAT (column 2) - convert to TaxRate
+	vat := strings.Trim(record[2], "\"")
+	taxRate := 0
+	switch vat {
+	case "Ђ":
+		taxRate = 20
+	case "Е":
+		taxRate = 10
+	default:
+		return models.Item{}, fmt.Errorf("invalid VAT code: %s", vat)
+	}
+
+	// Parse Price (column 4)
+	priceStr := strings.Trim(record[4], "\"")
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		return models.Item{}, fmt.Errorf("invalid price: %v", err)
+	}
+
+	return models.Item{
+		Name:    name,
+		Price:   price,
+		Unit:    "kom", // Default unit
+		TaxRate: taxRate,
+	}, nil
+}
+
 func Populate(inputFile string) {
 	db, err := gorm.Open(sqlite.Open("invoicing.db"), &gorm.Config{})
 	if err != nil {
